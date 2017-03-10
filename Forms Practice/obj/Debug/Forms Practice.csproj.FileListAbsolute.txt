@@ -1,0 +1,9 @@
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\bin\Debug\Forms Practice.exe.config
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\bin\Debug\Forms Practice.exe
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\bin\Debug\Forms Practice.pdb
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\obj\Debug\Forms Practice.csprojResolveAssemblyReference.cache
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\obj\Debug\Forms_Practice.MainForm.resources
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\obj\Debug\Forms_Practice.Properties.Resources.resources
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\obj\Debug\Forms Practice.csproj.GenerateResource.Cache
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\obj\Debug\Forms Practice.exe
+c:\users\hendrick-2\documents\visual studio 2013\Projects\Forms Practice\Forms Practice\obj\Debug\Forms Practice.pdb
