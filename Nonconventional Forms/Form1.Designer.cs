@@ -37,6 +37,8 @@
             this.ClientSize = new System.Drawing.Size(284, 262);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "Form1";
+            this.ShowInTaskbar = false;
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
             this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseDoubleClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseDown);
