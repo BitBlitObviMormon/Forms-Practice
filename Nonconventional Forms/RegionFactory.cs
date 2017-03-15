@@ -29,16 +29,9 @@ namespace Nonconventional_Forms
                     int alpha = image.GetPixel(x, y).A;
                     if (draw && alpha == 0)
                     {
-                        try
-                        {
-                            region.Union(new Rectangle(lastx, y, x - lastx, 1));
-                            lastx = x;
-                            draw = false;
-                        }
-                        catch (Exception e)
-                        {
-                            System.Windows.Forms.MessageBox.Show(e.Message + "\n" + e.StackTrace);
-                        }
+                        region.Union(new Rectangle(lastx, y, x - lastx, 1));
+                        lastx = x;
+                        draw = false;
                     }
                     else if (!draw && alpha != 0)
                     {
@@ -73,16 +66,9 @@ namespace Nonconventional_Forms
                     Color color = image.GetPixel(x, y);
                     if (draw && color == mask)
                     {
-                        try
-                        {
-                            region.Union(new Rectangle(lastx, y, x - lastx, 1));
-                            lastx = x;
-                            draw = false;
-                        }
-                        catch (Exception e)
-                        {
-                            System.Windows.Forms.MessageBox.Show(e.Message + "\n" + e.StackTrace);
-                        }
+                        region.Union(new Rectangle(lastx, y, x - lastx, 1));
+                        lastx = x;
+                        draw = false;
                     }
                     else if (!draw && color != mask)
                     {
