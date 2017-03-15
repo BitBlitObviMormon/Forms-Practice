@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using Gma.System.MouseKeyHook;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using Gma.System.MouseKeyHook;
+using System.Windows.Forms;
 
 namespace Screensaver
 {
