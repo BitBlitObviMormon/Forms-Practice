@@ -13,7 +13,7 @@ namespace Nonconventional_Forms
         private const int HT_CAPTION = 0x2;
 
         private const int startFrame = 0;
-        private const int delay = 500;
+        private const int tickLength = 100;
         private const bool bounce = true;
         private int direction;
 
@@ -41,38 +41,44 @@ namespace Nonconventional_Forms
 
             // Update the region of the form every tick
             timer = new Timer();
-            timer.Interval = delay;
+            timer.Interval = tickLength;
             timer.Enabled = true;
             timer.Tick += new EventHandler(
             delegate(object sender, EventArgs e)
             {
-                // Advance the frame by 1
-                frame += direction;
-                if (frame >= regions.Count)
-                {
-                    if (bounce)
-                    {
-                        direction = -1;
-                        frame = regions.Count + direction;
-                    }
-                    else
-                        frame = 0;
-                }
-                else if (frame < 0)
-                {
-                    if (bounce)
-                    {
-                        direction = 1;
-                        frame = direction;
-                    }
-                    else
-                        frame = regions.Count - 1;
-                }
-
-                // Draw the frame
-                Region = regions[frame].Clone();
-                CreateGraphics().DrawImage(images[frame], 0, 0);
+                update();
             });
+        }
+
+        /* Updates the smiley face gui */
+        private void update()
+        {
+            // Advance the frame by 1
+            frame += direction;
+            if (frame >= regions.Count)
+            {
+                if (bounce)
+                {
+                    direction = -1;
+                    frame = regions.Count + direction;
+                }
+                else
+                    frame = 0;
+            }
+            else if (frame < 0)
+            {
+                if (bounce)
+                {
+                    direction = 1;
+                    frame = direction;
+                }
+                else
+                    frame = regions.Count - 1;
+            }
+
+            // Draw the frame
+            Region = regions[frame].Clone();
+            CreateGraphics().DrawImage(images[frame], 0, 0);
         }
 
         /* Loads all of the images for the animation */
