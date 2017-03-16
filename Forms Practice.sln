@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Screensaver", "Forms Practice\Screensaver.csproj", "{7209A2EA-1842-4E4B-8ECC-601CEE305528}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Screensaver", "Screensaver\Screensaver.csproj", "{7209A2EA-1842-4E4B-8ECC-601CEE305528}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nonconventional Forms", "Nonconventional Forms\Nonconventional Forms.csproj", "{64550513-CE1A-4A19-90E1-5F708A05CB36}"
 EndProject
