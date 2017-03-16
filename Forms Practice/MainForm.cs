@@ -9,7 +9,7 @@ namespace Screensaver
 {
     public partial class MainForm : Form
     {
-        public IKeyboardMouseEvents globalHook;
+        private IKeyboardMouseEvents globalHook;
 
         /*************************
          * Initialize the window *
