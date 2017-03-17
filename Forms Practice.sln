@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Screensaver", "Screensaver\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nonconventional Forms", "Nonconventional Forms\Nonconventional Forms.csproj", "{64550513-CE1A-4A19-90E1-5F708A05CB36}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forms Control", "Forms Control\Forms Control.csproj", "{66449A4C-3B80-4251-834C-92ECD01D9418}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{64550513-CE1A-4A19-90E1-5F708A05CB36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64550513-CE1A-4A19-90E1-5F708A05CB36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64550513-CE1A-4A19-90E1-5F708A05CB36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66449A4C-3B80-4251-834C-92ECD01D9418}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66449A4C-3B80-4251-834C-92ECD01D9418}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66449A4C-3B80-4251-834C-92ECD01D9418}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66449A4C-3B80-4251-834C-92ECD01D9418}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

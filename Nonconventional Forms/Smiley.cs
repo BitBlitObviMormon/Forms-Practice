@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Nonconventional_Forms
 {
-    public partial class Form1 : Form
+    public partial class Smiley : Form
     {
         // Constants or events that are needed for global hooks
         private IMouseEvents hook;
@@ -41,12 +41,12 @@ namespace Nonconventional_Forms
 
         // Methods that are used to hook onto the windows drag function
         [System.Runtime.InteropServices.DllImportAttribute("user32.dll")]
-        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         [System.Runtime.InteropServices.DllImportAttribute("user32.dll")]
-        public static extern bool ReleaseCapture();
+        private static extern bool ReleaseCapture();
 
         /* Initializes the form */
-        public Form1()
+        public Smiley()
         {
             // Load all of the frames for the animation
             loadFrames(120, 120);

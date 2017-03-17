@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{64550513-CE1A-4A19-90E1-5F708A05CB36}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <ProjectGuid>{66449A4C-3B80-4251-834C-92ECD01D9418}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Nonconventional_Forms</RootNamespace>
-    <AssemblyName>Nonconventional Forms</AssemblyName>
+    <RootNamespace>Forms_Control</RootNamespace>
+    <AssemblyName>Forms Control</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,10 +31,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gma.System.MouseKeyHook">
-      <HintPath>..\packages\MouseKeyHook.5.4.0\lib\net40\Gma.System.MouseKeyHook.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -47,17 +47,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Smiley.cs">
+    <Compile Include="..\Nonconventional Forms\RegionFactory.cs">
+      <Link>RegionFactory.cs</Link>
+    </Compile>
+    <Compile Include="CommandError.cs" />
+    <Compile Include="CommandManager.cs" />
+    <Compile Include="PuppetForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Smiley.Designer.cs">
-      <DependentUpon>Smiley.cs</DependentUpon>
+    <Compile Include="PuppetForm.Designer.cs">
+      <DependentUpon>PuppetForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RegionFactory.cs" />
-    <EmbeddedResource Include="Smiley.resx">
-      <DependentUpon>Smiley.cs</DependentUpon>
+    <Compile Include="WinController.cs" />
+    <EmbeddedResource Include="PuppetForm.resx">
+      <DependentUpon>PuppetForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
