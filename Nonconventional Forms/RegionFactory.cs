@@ -1,9 +1,8 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace Nonconventional_Forms
 {
-    class RegionFactory
+    public class RegionFactory
     {
         public Region region;
         public RegionFactory() { clear(); }
