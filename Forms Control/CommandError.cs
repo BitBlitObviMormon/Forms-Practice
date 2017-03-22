@@ -9,6 +9,7 @@ namespace Forms_Control
         public static readonly CommandError InvalidArgument = new CommandError(-2);
         public static readonly CommandError VarDoesNotExist = new CommandError(-3);
         public static readonly CommandError NotEnoughArguments = new CommandError(-4);
+        public static readonly CommandError InvalidHandle = new CommandError(-5);
 
         private readonly int err;        
         private CommandError(int err) { this.err = err; }
@@ -31,6 +32,8 @@ namespace Forms_Control
                     return "Variable does not exist";
                 case -4:
                     return "Not enough arguments were passed";
+                case -5:
+                    return "An invalid window handle was passed";
                 default:
                     return "Invalid error code";
             }
