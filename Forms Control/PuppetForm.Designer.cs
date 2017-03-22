@@ -34,9 +34,13 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 262);
+            this.ClientSize = new System.Drawing.Size(1, 1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "PuppetForm";
             this.Text = "Forms Controller";
+            this.TopMost = true;
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.PuppetForm_Paint);
+            this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.PuppetForm_MouseDoubleClick);
             this.ResumeLayout(false);
 
         }

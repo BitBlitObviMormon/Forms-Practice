@@ -22,7 +22,7 @@ namespace Forms_Control
                 case 1:
                     return "Operation successful";
                 case 0:
-                    return "Error code is null";
+                    return "Return value is null";
                 case -1:
                     return "Invalid command";
                 case -2:

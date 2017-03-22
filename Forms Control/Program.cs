@@ -14,21 +14,25 @@ namespace Forms_Control
         [STAThread]
         static void Main()
         {
+            // Prep the windows forms
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
             // Start the console program
-            Thread consoleThread = new Thread(CMain);
+            PuppetForm form = new PuppetForm();
+            Thread consoleThread = new Thread(() => CMain(form));
             consoleThread.IsBackground = true;
             consoleThread.Start();
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new PuppetForm());
+            // Run the application
+            Application.Run(form);
         }
 
         // The console's main loop
-        static void CMain()
+        static void CMain(PuppetForm form)
         {
             Console.Title = "Forms Controller Console";
-            Program.commandManager = new CommandManager();
+            Program.commandManager = new CommandManager(form);
 
             while (true)
             {
