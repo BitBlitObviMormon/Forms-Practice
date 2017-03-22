@@ -8,6 +8,7 @@ namespace Forms_Control
 {
     public class CommandManager
     {
+        private const int ERROR_INVALID_PARAMETER = 87;
         private Dictionary<string, Object> vars;
         private PuppetForm puppet;
         private JobQueue jobs;
@@ -27,6 +28,9 @@ namespace Forms_Control
 
         /* Returns the value of a variable */
         public Object getVar(string name) { return vars[name]; }
+
+        /* Sets the value of a variable */
+        public void setVar(string name, Object var) { vars[name] = var; }
 
         /* Prints the value of a variable */
         public void printVar(string name) { Console.WriteLine(name + " = " + vars[name].ToString()); }
@@ -98,7 +102,7 @@ namespace Forms_Control
                         // Get the value of the variable
                         string name = commands[1];
                         if (printOutput)
-                            Console.WriteLine(name + " = " + vars[name].ToString());
+                            printVar(name);
                         commandReturn = vars[name];
                         return CommandError.Success;
                     }
@@ -131,15 +135,15 @@ namespace Forms_Control
                         if (value.Contains("= "))
                             value = value.Substring(2);
                         // Set the variable to the value, if that fails, complain and explain why
-                        if (setVar(name, value) != CommandError.Success)
+                        if (set(name, value) != CommandError.Success)
                         {
                             if (printOutput)
                                 Console.WriteLine("Error: " + commandReturn.ToString() + ".");
                             return CommandError.InvalidArgument;
                         }
-                        
+
                         if (printOutput)
-                            Console.WriteLine(name + " = " + vars[name].ToString());
+                            printVar(name);
                         return CommandError.Success;
                     }
                 // DELETE %var%
@@ -157,7 +161,7 @@ namespace Forms_Control
                         string name = commands[1];
                         if (printOutput)
                             Console.WriteLine("Deleted " + name + ".");
-                        vars.Remove(name);
+                        deleteVar(name);
                         return CommandError.Success;
                     }
                     // If the variable could not be found, complain
@@ -294,9 +298,14 @@ namespace Forms_Control
                         // Enable the given window and complain if it doesn't work
                         if (!WinController.EnableWindow((IntPtr)ptr, enabled))
                         {
-                            if (printOutput)
-                                Console.WriteLine("Error: " + new Win32Exception(Marshal.GetLastWin32Error()).Message + ".");
-                            return CommandError.InvalidHandle;
+                            // Check to make sure it didn't work
+                            int lasterror = Marshal.GetLastWin32Error();
+                            if (WinController.IsWindowEnabled((IntPtr)ptr) != enabled || !WinController.IsWindow((IntPtr)ptr))
+                            {
+                                if (printOutput)
+                                    Console.WriteLine("Error: " + new Win32Exception(Marshal.GetLastWin32Error()).Message + ".");
+                                return CommandError.InvalidHandle;
+                            }
                         }
                         // Print the output
                         if (printOutput)
@@ -317,12 +326,12 @@ namespace Forms_Control
         }
 
         /* Sets the variable %name% to whatever command was given (could be int, string, evaluation, etc.) */
-        private CommandError setVar(string name, string command)
+        private CommandError set(string name, string command)
         {
             if (vars.ContainsKey(name))
-                vars[name] = command;
+                setVar(name, command);
             else
-                vars.Add(name, command);
+                addVar(name, command);
 
             commandReturn = vars[name];
             return CommandError.Success;
