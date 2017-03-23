@@ -38,7 +38,6 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "PuppetForm";
             this.Text = "Forms Controller";
-            this.TopMost = true;
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.PuppetForm_Paint);
             this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.PuppetForm_MouseDoubleClick);
             this.ResumeLayout(false);

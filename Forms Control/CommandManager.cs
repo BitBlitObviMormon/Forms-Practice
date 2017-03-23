@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Forms_Control
@@ -73,6 +75,9 @@ namespace Forms_Control
          ********************************************************************************************
          * DISABLE %hwnd%                                                                           *
          * Disables the window                                                                      *
+         ********************************************************************************************
+         * BRINGTOTOP %hwnd%                                                                        *
+         * Moves the window to the front of the screen, in front of the other windows               *
          ********************************************************************************************/
         public int runCommand(string command, bool printOutput = true)
         {
@@ -201,21 +206,37 @@ namespace Forms_Control
                         }
                         // Check if there's a third argument and attempt to parse it as a float, if that fails, parse it as a string
                         float speed = 5.0f;
-                        string side = "center";
+                        string side = "closest";
                         if (commands.Length > 3)
                             if (!float.TryParse(commands[3], out speed))
                                 side = commands[3];
                         // Check if there's a fourth argument and attempt to parse it as a float, if that fails, parse it as a string
                         if (commands.Length > 4)
-                            if (!float.TryParse(commands[4], out speed))
+                        {
+                            if (speed == 0.0f)
+                            {
+                                if (!float.TryParse(commands[4], out speed))
+                                    side = commands[4];
+                            }
+                            else
                                 side = commands[4];
+                        }
                         // If the speed is zero then make it 5.0
                         if (speed == 0.0f)
                             speed = 5.0f;
                         // Move the puppet to the given coordinates
                         if (printOutput)
                             Console.WriteLine("Moving to (" + x.ToString() + ", " + y.ToString() + ")");
-                        jobs.add(() => puppet.MoveTo(x, y, speed, side));
+                        int i = 0;
+                        jobs.add(() => puppet.MoveTo(x, y, speed, side, new Func<float, float, bool>((float px, float py) => 
+                        {
+                            if (i++ == 10)
+                            {
+                                Console.WriteLine(new PointF(px, py).ToString());
+                                i = 0;
+                            }
+                            return true;
+                        })));
 
                         return CommandError.Success;
                     }
@@ -315,6 +336,89 @@ namespace Forms_Control
                             else
                                 Console.WriteLine("Disabled " + ptr.ToString() + ".");
                         }
+
+                        return CommandError.Success;
+                    }
+                case "bringtotop":
+                    {
+                        // Check for the first parameter
+                        if (commands.Length <= 1)
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: Not anough arguments.");
+                            return CommandError.NotEnoughArguments;
+                        }
+                        // Parse the first argument as a pointer
+                        int ptr;
+                        if (!Int32.TryParse(commands[1], out ptr))
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: Invalid window handle.");
+                            return CommandError.InvalidArgument;
+                        }
+                        // Bring the window to the top and complain if it doesn't work
+                        if (!WinController.BringWindowToTop((IntPtr)ptr))
+                        {
+                            // Get the resulting error
+                            int lasterror = Marshal.GetLastWin32Error();
+                            if (printOutput)
+                                Console.WriteLine("Error: " + new Win32Exception(Marshal.GetLastWin32Error()).Message + ".");
+                            return CommandError.InvalidHandle;
+                        }
+                        // Print the output
+                        if (printOutput)
+                            Console.WriteLine("Brought " + ptr.ToString() + " to top.");
+
+                        return CommandError.Success;
+                    }
+                case "setfocus":
+                    {
+                        // Check for the first parameter
+                        if (commands.Length <= 1)
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: Not anough arguments.");
+                            return CommandError.NotEnoughArguments;
+                        }
+                        // Parse the first argument as a pointer
+                        int ptr;
+                        if (!Int32.TryParse(commands[1], out ptr))
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: Invalid window handle.");
+                            return CommandError.InvalidArgument;
+                        }
+                        // Give the window focus and complain if it doesn't work
+                        IntPtr lastFocus = WinController.SetFocus((IntPtr)ptr);
+                        if (lastFocus == IntPtr.Zero)
+                        {
+                            // Get the resulting error
+                            int lasterror = Marshal.GetLastWin32Error();
+                            if (printOutput)
+                                Console.WriteLine("Error: " + new Win32Exception(Marshal.GetLastWin32Error()).Message + ".");
+                            return CommandError.InvalidHandle;
+                        }
+                        // Print the output
+                        if (printOutput)
+                            Console.WriteLine("Gave " + ptr.ToString() + " focus. Last window that had focus was " + lastFocus.ToString() + ".");
+
+                        return CommandError.Success;
+                    }
+                case "getfocus":
+                    {
+                        // Get the window has focus and complain if it doesn't work
+                        IntPtr focus = WinController.GetFocus();
+                        if (focus == IntPtr.Zero)
+                        {
+                            // Get the resulting error
+                            int lasterror = Marshal.GetLastWin32Error();
+                            if (printOutput)
+                                Console.WriteLine("Error: " + new Win32Exception(Marshal.GetLastWin32Error()).Message + ".");
+                            return CommandError.InvalidHandle;
+                        }
+                        // Print the output
+                        if (printOutput)
+                            Console.WriteLine(focus.ToString() + " currently has focus.");
 
                         return CommandError.Success;
                     }

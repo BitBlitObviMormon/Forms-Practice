@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Forms_Control
@@ -19,10 +20,10 @@ namespace Forms_Control
         private int midy         { get { return midh + Location.Y;     } }
         public Point top         { get { return new Point(midx, Location.Y);        } set { value.Offset(new Point(-midw, 0));     Location = value; } }
         public Point bottom      { get { return new Point(midx, y);                 } set { value.Offset(new Point(-midw, -h));    Location = value; } }
-        public Point left        { get { return new Point(Location.Y, midy);        } set { value.Offset(new Point(0, -midh));     Location = value; } }
+        public Point left        { get { return new Point(Location.X, midy);        } set { value.Offset(new Point(0, -midh));     Location = value; } }
         public Point right       { get { return new Point(x, midy);                 } set { value.Offset(new Point(-w, -midh));    Location = value; } }
         public Point center      { get { return new Point(midx, midy);              } set { value.Offset(new Point(-midw, -midh)); Location = value; } }
-        public Point topLeft     { get { return new Point(Location.Y, Location.Y);  } set {                                        Location = value; } }
+        public Point topLeft     { get { return new Point(Location.X, Location.Y);  } set {                                        Location = value; } }
         public Point topRight    { get { return new Point(x, Location.Y);           } set { value.Offset(new Point(-w, 0));        Location = value; } }
         public Point bottomLeft  { get { return new Point(Location.X, y);           } set { value.Offset(new Point(0, -h));        Location = value; } }
         public Point bottomRight { get { return new Point(x, y);                    } set { value.Offset(new Point(-w, -h));       Location = value; } }
@@ -55,9 +56,70 @@ namespace Forms_Control
             Close();
         }
 
-        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread) */
-        public void MoveTo(float x, float y, float dr = 5.0f, string side = "center", bool printOutput = true)
+        /* Returns the square of the distance between two points */
+        public static float distanceSquared(float x1, float y1, float x2, float y2)
         {
+            return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+        }
+
+        /* Returns the square of the distance between two points */
+        public static float distanceSquared(PointF p1, PointF p2)
+        {
+            return distanceSquared(p1.X, p1.Y, p2.X, p2.Y);
+        }
+
+        /* Returns the square of the distance between two points */
+        public static float distanceSquared(float x1, float y1, PointF p2)
+        {
+            return distanceSquared(x1, y1, p2.X, p2.Y);
+        }
+
+        /* Returns the square of the distance between two points */
+        public static float distanceSquared(PointF p1, float x2, float y2)
+        {
+            return distanceSquared(p1.X, p1.Y, x2, y2);
+        }
+
+        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    */
+        /* Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. */
+        /* If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only quick runtimes, please.       */
+        public void MoveTo(PointF pos, string side, Func<float, float, bool> callFunc = null, bool printOutput = true)
+        {
+            MoveTo(pos.X, pos.Y, 5.0f, side, callFunc, printOutput);
+        }
+
+        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    */
+        /* Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. */
+        /* If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only quick runtimes, please.       */
+        public void MoveTo(PointF pos, float dr = 5.0f, string side = "closest", Func<float, float, bool> callFunc = null, bool printOutput = true)
+        {
+            MoveTo(pos.X, pos.Y, dr, side, callFunc, printOutput);
+        }
+
+        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    */
+        /* Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. */
+        /* If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only quick runtimes, please.       */
+        public void MoveTo(float x, float y, string size, Func<float, float, bool> callFunc = null, bool printOutput = true)
+        {
+            MoveTo(x, y, 5.0f, size, callFunc, printOutput);
+        }
+
+        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    */
+        /* Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. */
+        /* If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only quick runtimes, please.       */
+        public void MoveTo(float x, float y, float dr = 5.0f, string side = "closest", Func<float, float, bool> callFunc = null, bool printOutput = true)
+        {
+            // If the user wants us to decide what to use then let's decide for them.
+            side = side.ToLower();
+            if (side.Contains("closest"))
+            {
+                side = side.Replace("closest", "");
+                if (side == "")
+                    side = pickClosest(x, y, "any");
+                else
+                    side = pickClosest(x, y, side);
+            }
+
             // Set up the position
             PointF pos = new PointF();
             switch (side.ToLower())
@@ -93,23 +155,27 @@ namespace Forms_Control
                     if (printOutput)
                     {
                         Console.WriteLine("Invalid side: " + side + ".");
-                        Console.WriteLine("Options are top, bottom, left, right, center, topLeft, topRight, bottomLeft, bottomRight.");
+                        Console.WriteLine("Options are: top, bottom, left, right, center, topLeft, topRight,");
+                        Console.WriteLine("   bottomLeft, bottomRight, closest, closestside, closestcorner.");
                     }
                     return;
             }
 
+            // Use this thread to call the callback method later
+            int skips = -1;
+            Task task = new Task(() => callFunc.Invoke(pos.X, pos.Y));
+
+            // While the target is not yet close enough, move towards it
             float d = dr * 1.41421356237F + CloseDistance;
             while (((pos.X - x) * (pos.X - x) + (pos.Y - y) * (pos.Y - y)) > d * d)
             {
-                Thread.Sleep(10);
-
                 // Move the window towards the point
                 double direction = Math.Atan2(y - pos.Y, x - pos.X);
                 pos.Y += (float)(dr * Math.Sin(direction));
                 pos.X += (float)(dr * Math.Cos(direction));
 
                 // Update the window's position
-                Invoke(new Action(delegate()
+                BeginInvoke(new Action(delegate()
                 {
                     switch(side.ToLower())
                     {
@@ -142,10 +208,50 @@ namespace Forms_Control
                             break;
                     }
                 }));
+
+                // Invoke the callback method if it exists and isn't currently running or forgotten.
+                if (callFunc != null && skips != -2)
+                {
+                    // If the thread was never started, start it up
+                    if (skips == -1)
+                    {
+                        task.Start();
+                        skips = 0;
+
+                        // Check to see if the thread is trustworthy: if it takes too long, forget about it; it'll die eventually.
+                        if (!task.Wait(100))
+                        {
+                            Console.WriteLine("MoveTo: Aborted thread - took too long to respond.");
+                            skips = -2; // Thread's now forgotten
+                        }
+                    }
+                    // If the thread is still alive and running then skip a frame
+                    else if (task.Status != TaskStatus.RanToCompletion)
+                    {
+                        // If the thread skipped too many frames, forget about it; the callback method must be untrustworthy; it'll die eventually.
+                        skips++;
+                        task = task.ContinueWith((Object) => callFunc.Invoke(pos.X, pos.Y));
+                        Console.WriteLine("MoveTo: Skipped " + skips.ToString() + (skips == 1 ? " frame." : " frames."));
+                        if (skips > 10)
+                        {
+                            Console.WriteLine("MoveTo: Aborted thread - took too long to respond.");
+                            skips = -2; // Thread's now forgotten
+                        }
+                    }
+                    // If the thread finished, start a new one
+                    else
+                    {
+                        task = task.ContinueWith((Object) => callFunc.Invoke(pos.X, pos.Y));
+                        skips = 0;
+                    }
+                }
+
+                // Wait for 10 milliseconds
+                Thread.Sleep(10);
             }
 
             // Update the window to the exact position (now that it's close)
-            Invoke(new Action(delegate()
+            BeginInvoke(new Action(delegate()
             {
                 switch(side.ToLower())
                 {
@@ -196,6 +302,101 @@ namespace Forms_Control
                         break;
                 }
             }));
+
+            // If the thread is still running, wait for the thread to finish
+            if (task != null && skips >= 0)
+            {
+                if (task.Status == TaskStatus.RanToCompletion)
+                    task = task.ContinueWith((Object) => callFunc.Invoke(x, y));
+
+                // If the thread still didn't finish, forget about it ever existing, it'll die eventually. :o
+                if (!task.Wait(100))
+                    Console.WriteLine("MoveTo: Aborted thread - it was taking too long to finish.");
+            }
+        }
+
+        /* Determine the side, corner, or center that is closest to the given point */
+        /* Can take "any", "side", or "corner"                                      */
+        public string pickClosest(float x, float y, string type = "any")
+        {
+            // Variables for remembering which was the closest
+            float closestDistance = float.PositiveInfinity;
+            float tempDist = 0.0f;
+            string decision = type;
+
+            // If we're picking anything, decide if the center is closest
+            if (type == "any")
+            {
+                // Check if the center is closest
+                closestDistance = distanceSquared(x, y, center);
+                decision = "center";
+            }
+            // If we're picking sides, decide which side is the closest
+            if (type == "decision" || type == "any")
+            {
+                // Check if the top side is closest
+                tempDist = distanceSquared(x, y, top);
+                if (tempDist < closestDistance)
+                {
+                    closestDistance = tempDist;
+                    decision = "top";
+                }
+                // Check if the left side is closest
+                tempDist = distanceSquared(x, y, left);
+                if (tempDist < closestDistance)
+                {
+                    closestDistance = tempDist;
+                    decision = "left";
+                }
+                // Check if the right side is closest
+                tempDist = distanceSquared(x, y, right);
+                if (tempDist < closestDistance)
+                {
+                    closestDistance = tempDist;
+                    decision = "right";
+                }
+                // Check if the bottom side is closest
+                tempDist = distanceSquared(x, y, bottom);
+                if (tempDist < closestDistance)
+                {
+                    closestDistance = tempDist;
+                    decision = "bottom";
+                }
+            }
+            // If we're picking corners, decide which corner is the closest
+            if (type == "corner" || type == "any")
+            {
+                // Check if the top-left corner is closest
+                tempDist = distanceSquared(x, y, topLeft);
+                if (tempDist < closestDistance)
+                {
+                    closestDistance = tempDist;
+                    decision = "topleft";
+                }
+                // Check if the top-right corner is closest
+                tempDist = distanceSquared(x, y, topRight);
+                if (tempDist < closestDistance)
+                {
+                    closestDistance = tempDist;
+                    decision = "topright";
+                }
+                // Check if the bottom-left corner is closest
+                tempDist = distanceSquared(x, y, bottomLeft);
+                if (tempDist < closestDistance)
+                {
+                    closestDistance = tempDist;
+                    decision = "bottomleft";
+                }
+                // Check if the bottom-right corner is closest
+                tempDist = distanceSquared(x, y, bottomRight);
+                if (tempDist < closestDistance)
+                {
+                    closestDistance = tempDist;
+                    decision = "bottomright";
+                }
+            }
+
+            return decision;
         }
     }
 }
