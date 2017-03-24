@@ -48,13 +48,21 @@ namespace Forms_Control
         [DllImportAttribute("user32.dll", SetLastError = true)]
         public static extern bool EnableWindow(IntPtr hWnd, bool bEnable);
 
-        /* Returns whether or not the window is enabled */
+        /* Returns whether or not the window is minimized (iconic) */
         [DllImportAttribute("user32.dll", SetLastError = true)]
-        public static extern bool IsWindowEnabled(IntPtr hWnd);
+        public static extern bool IsIconic(IntPtr hWnd);
 
         /* Returns whether or not the handle is a window */
         [DllImportAttribute("user32.dll", SetLastError = true)]
         public static extern bool IsWindow(IntPtr hWnd);
+
+        /* Returns whether or not the window is enabled */
+        [DllImportAttribute("user32.dll", SetLastError = true)]
+        public static extern bool IsWindowEnabled(IntPtr hWnd);
+
+        /* Returns whether or not the given window has WS_VISIBLE set to true */
+        [DllImportAttribute("user32.dll", SetLastError = true)]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
 
         /* Changes the state of the window (minimized, maximized, hidden, etc.) */
         [DllImportAttribute("user32.dll", SetLastError = true)]
@@ -64,6 +72,15 @@ namespace Forms_Control
         /* Get the currently active window */
         [DllImportAttribute("user32.dll", SetLastError = true)]
         public static extern IntPtr GetActiveWindow();
+
+        /* Get the foremost window */
+        [DllImportAttribute("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetForegroundWindow();
+
+        /* Grabs the window's thread and process ids */
+        [DllImportAttribute("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out IntPtr lpdwProcessId);
+        public static        IntPtr GetWindowThreadProcessId(IntPtr hWnd) { IntPtr nil = IntPtr.Zero; return GetWindowThreadProcessId(hWnd, out nil); }
 
         /* Get the given window's title */
         [DllImportAttribute("user32.dll", SetLastError = true)]

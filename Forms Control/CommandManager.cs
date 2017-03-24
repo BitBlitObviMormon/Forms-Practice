@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace Forms_Control
@@ -40,54 +39,87 @@ namespace Forms_Control
         /* Deletes the variable from the list of variables */
         public void deleteVar(string name) { vars.Remove(name); }
 
-        /********************************************************************************************
-         * Runs the given command, see list of commands below                                       *
-         * If printOutput is false, then it will not print anything onto the console.               *
-         ********************************************************************************************
-         * SET %var% = %value%                                                                      *
-         * Makes the variable %var% equal to %value%, creating %var% if necessary.                  *
-         ********************************************************************************************
-         * GET %var%                                                                                *
-         * PRINT %var%                                                                              *
-         * Prints the value of %var% or returns an error if it does not exist.                      *
-         ********************************************************************************************
-         * DELETE %var%                                                                             *
-         * Deletes the variable %var%.                                                              *
-         ********************************************************************************************
-         * EXIT                                                                                     *
-         * Closes the application.                                                                  *
-         ********************************************************************************************
-         * CLEAR                                                                                    *
-         * Clears the console screen (ignores printOutput)                                          *
-         ********************************************************************************************
-         * MOVETO %x% %y% [%speed%] [%side%]                                                        *
-         * Translates the given side of the puppet form to the given position with the given speed. *
-         * %speed% defaults to 5.0, %side% defaults to "center"                                     *
-         ********************************************************************************************
-         * GETWINDOWS                                                                               *
-         * Prints a list of all of the windows                                                      *
-         ********************************************************************************************
-         * GETWINDOWTITLE %hwnd%                                                                    *
-         * Prints the title of the window                                                           *
-         ********************************************************************************************
-         * ENABLE %hwnd%                                                                            *
-         * Enables the window                                                                       *
-         ********************************************************************************************
-         * DISABLE %hwnd%                                                                           *
-         * Disables the window                                                                      *
-         ********************************************************************************************
-         * BRINGTOTOP %hwnd%                                                                        *
-         * Moves the window to the front of the screen, in front of the other windows               *
-         ********************************************************************************************/
+        /* Translates escape characters to their string literals */
+        public static string translateEscapeSequences(string text)
+        {
+            return text.Replace("\\n", "\n").Replace("\\t", "\t").Replace("\\a", "\a").Replace("\\b", "\b")
+                .Replace("\\f", "\f").Replace("\\r", "\r").Replace("\\v", "\v").Replace("\\\"", "\"");
+        }
+
+        /*****************************************************************************************************
+         * Runs the given command and stores the return value in commandReturn, see list of commands below   *
+         * The command itself returns greater than zero if successful and a negative error code on failure   *
+         * If printOutput is false, then it will not print anything onto the console.                        *
+         *****************************************************************************************************
+         * void SET %var% = %value%                                                                          *
+         * Makes the variable %var% equal to %value%, creating %var% if necessary.                           *
+         *****************************************************************************************************
+         * Object GET %var%                                                                                  *
+         * Object PRINT %var%                                                                                *
+         * Prints the value of %var% or returns an error if it does not exist.                               *
+         *****************************************************************************************************
+         * void DELETE %var%                                                                                 *
+         * Deletes the variable %var%.                                                                       *
+         *****************************************************************************************************
+         * void EXIT                                                                                         *
+         * Closes the application.                                                                           *
+         *****************************************************************************************************
+         * void CLEAR                                                                                        *
+         * Clears the console screen (ignores printOutput)                                                   *
+         *****************************************************************************************************
+         * void MOVETO %x% %y% [%speed%] [%side%]                                                            *
+         * Translates the given side of the puppet form to the given position with the given speed.          *
+         * %speed% defaults to 5.0, %side% defaults to "center"                                              *
+         *****************************************************************************************************
+         * string GETWINDOW                                                                                  *
+         * string GETACTIVEWINDOW                                                                            *
+         * Prints the currently active window                                                                *
+         *****************************************************************************************************
+         * IEnumerable<IntPtr> GETWINDOWS                                                                    *
+         * IEnumerable<IntPtr> LISTWINDOWS                                                                   *
+         * Prints a list of all of the windows                                                               *
+         *****************************************************************************************************
+         * string GETWINDOWTITLE %hwnd%                                                                      *
+         * Prints the title of the window                                                                    *
+         *****************************************************************************************************
+         * void ENABLE %hwnd%                                                                                *
+         * Enables the window                                                                                *
+         *****************************************************************************************************
+         * void DISABLE %hwnd%                                                                               *
+         * Disables the window                                                                               *
+         *****************************************************************************************************
+         * void BRINGTOTOP %hwnd%                                                                            *
+         * Moves the window to the front of the screen, in front of the other windows                        *
+         *****************************************************************************************************
+         * bool ISENABLED %hwnd%                                                                             *
+         * Returns true if the window is enabled                                                             *
+         *****************************************************************************************************
+         * bool ISMINIMIZED %hwnd%                                                                           *
+         * Returns true if the window is minimized                                                           *
+         *****************************************************************************************************
+         * bool ISVISIBLE %hwnd%                                                                             *
+         * Returns true if the window is not flagged as invisible                                            *
+         *****************************************************************************************************
+         * bool ISWINDOW %hwnd%                                                                              *
+         * Returns whether or not the given handle is a valid window                                         *
+         *****************************************************************************************************
+         * void SAY [%title%] %text% [%time%]                                                                *
+         * void TALK [%title%] %text% [%time%]                                                               *
+         * Makes the puppet form display a chat bubble with the given text and title for the given duration  *
+         *****************************************************************************************************
+         * void NOTIFY [%title%] %text% [%time%]                                                             *
+         * Makes the puppet form display a notification with the given text and title for the given duration *
+         *****************************************************************************************************/
         public int runCommand(string command, bool printOutput = true)
         {
-            string[] commands = command.ToLower().Split(new[]{' ', '='},  StringSplitOptions.RemoveEmptyEntries);
+            string[] commands = command.ToLower().Split(new[] { ' ', '=' }, StringSplitOptions.RemoveEmptyEntries);
+            commandReturn = null;
 
             if (commands.Length < 1)
             {
                 if (printOutput)
-                    Console.WriteLine("Error: No command given.");
-                return CommandError.Null;
+                    Console.WriteLine("Error: No command was given.");
+                return CommandError.NoCommandGiven;
             }
 
             switch (commands[0])
@@ -95,28 +127,30 @@ namespace Forms_Control
                 // PRINT %var% or GET %var%
                 case "print":
                 case "get":
-                    try
                     {
-                        // If there aren't any arguments passed, complain
-                        if (commands.Length <= 1)
+                        try
+                        {
+                            // If there aren't any arguments passed, complain
+                            if (commands.Length <= 1)
+                            {
+                                if (printOutput)
+                                    Console.WriteLine("Error: Not enough arguments.");
+                                return CommandError.NotEnoughArguments;
+                            }
+                            // Get the value of the variable
+                            string name = commands[1];
+                            if (printOutput)
+                                printVar(name);
+                            commandReturn = vars[name];
+                            return CommandError.Success;
+                        }
+                        // If the variable could not be found, complain
+                        catch (KeyNotFoundException)
                         {
                             if (printOutput)
-                                Console.WriteLine("Error: Not enough arguments.");
-                            return CommandError.NotEnoughArguments;
+                                Console.WriteLine("Error: " + commands[1] + " does not exist.");
+                            return CommandError.VarDoesNotExist;
                         }
-                        // Get the value of the variable
-                        string name = commands[1];
-                        if (printOutput)
-                            printVar(name);
-                        commandReturn = vars[name];
-                        return CommandError.Success;
-                    }
-                    // If the variable could not be found, complain
-                    catch (KeyNotFoundException)
-                    {
-                        if (printOutput)
-                            Console.WriteLine("Error: " + commands[1] + " does not exist.");
-                        return CommandError.VarDoesNotExist;
                     }
                 // SET %var% = %value%
                 case "set":
@@ -153,41 +187,47 @@ namespace Forms_Control
                     }
                 // DELETE %var%
                 case "delete":
-                    try
                     {
-                        // If there aren't any arguments passed, complain
-                        if (commands.Length <= 1)
+                        try
+                        {
+                            // If there aren't any arguments passed, complain
+                            if (commands.Length <= 1)
+                            {
+                                if (printOutput)
+                                    Console.WriteLine("Error: Not enough arguments.");
+                                return CommandError.NotEnoughArguments;
+                            }
+                            // Delete the variable
+                            string name = commands[1];
+                            if (printOutput)
+                                Console.WriteLine("Deleted " + name + ".");
+                            deleteVar(name);
+                            return CommandError.Success;
+                        }
+                        // If the variable could not be found, complain
+                        catch (KeyNotFoundException)
                         {
                             if (printOutput)
-                                Console.WriteLine("Error: Not enough arguments.");
-                            return CommandError.NotEnoughArguments;
+                                Console.WriteLine("Error: " + commands[1] + " does not exist.");
+                            return CommandError.VarDoesNotExist;
                         }
-                        // Delete the variable
-                        string name = commands[1];
-                        if (printOutput)
-                            Console.WriteLine("Deleted " + name + ".");
-                        deleteVar(name);
-                        return CommandError.Success;
-                    }
-                    // If the variable could not be found, complain
-                    catch (KeyNotFoundException)
-                    {
-                        if (printOutput)
-                            Console.WriteLine("Error: " + commands[1] + " does not exist.");
-                        return CommandError.VarDoesNotExist;
                     }
                 // EXIT
                 case "exit":
-                    Application.Exit(); // Close the application
-                    return CommandError.Success;
+                    {
+                        Application.Exit(); // Close the application
+                        return CommandError.Success;
+                    }
                 // CLEAR
                 case "clear":
-                    Console.Clear(); // Clear the console screen
-                    return CommandError.Success;
-                // MOVETO %x% %y%
+                    {
+                        Console.Clear(); // Clear the console screen
+                        return CommandError.Success;
+                    }
+                // MOVETO %x% %y% [%speed%] [%side%]
                 case "moveto":
                     {
-                        commands = command.ToLower().Split(new[]{' ', ',', '(', ')', '\"'}, StringSplitOptions.RemoveEmptyEntries);
+                        commands = command.ToLower().Split(new[] { ' ', ',', '(', ')', '\"' }, StringSplitOptions.RemoveEmptyEntries);
 
                         // Check to make sure the number of parameters is 2 or more
                         if (commands.Length <= 2)
@@ -204,13 +244,13 @@ namespace Forms_Control
                                 Console.WriteLine("Error: Invalid arguments.");
                             return CommandError.InvalidArgument;
                         }
-                        // Check if there's a third argument and attempt to parse it as a float, if that fails, parse it as a string
+                        // Check if there's a third argument and attempt to parse it as a float (speed), if that fails, parse it as a string (side)
                         float speed = 5.0f;
                         string side = "closest";
                         if (commands.Length > 3)
                             if (!float.TryParse(commands[3], out speed))
                                 side = commands[3];
-                        // Check if there's a fourth argument and attempt to parse it as a float, if that fails, parse it as a string
+                        // Check if there's a fourth argument and attempt to parse it as a float (speed), if that fails, parse it as a string (side)
                         if (commands.Length > 4)
                         {
                             if (speed == 0.0f)
@@ -228,7 +268,7 @@ namespace Forms_Control
                         if (printOutput)
                             Console.WriteLine("Moving to (" + x.ToString() + ", " + y.ToString() + ")");
                         int i = 0;
-                        jobs.add(() => puppet.MoveTo(x, y, speed, side, new Func<float, float, bool>((float px, float py) => 
+                        jobs.add(() => puppet.MoveTo(x, y, speed, side, new Func<float, float, bool>((float px, float py) =>
                         {
                             if (i++ == 10)
                             {
@@ -240,8 +280,40 @@ namespace Forms_Control
 
                         return CommandError.Success;
                     }
-                // GETWINDOWS
-                // LISTWINDOWS
+                // GETWINDOW
+                case "getwindow":
+                // GETACTIVEWINDOW
+                case "getactivewindow":
+                    {
+                        IntPtr hWnd = WinController.GetForegroundWindow();
+
+                        // If thw window didn't return a handle, complain
+                        if (hWnd == IntPtr.Zero)
+                        {
+                            int code = Marshal.GetLastWin32Error();
+                            if (code != 0)
+                            {
+                            if (printOutput)
+                                Console.WriteLine("Error: " + new Win32Exception(code).Message + ".");
+                            return CommandError.InvalidHandle;
+                            }
+                            else
+                            {
+                                if (printOutput)
+                                    Console.WriteLine("No window is active at this time.");
+                                return CommandError.Null;
+                            }
+                        }
+
+                        // Get the title of the window
+                        if (printOutput)
+                            Console.WriteLine(WinController.GetWindowText(hWnd) + ": " + hWnd.ToString());
+
+                        commandReturn = hWnd;
+
+                        return CommandError.Success;
+                    }
+                // GETWINDOWS or LISTWINDOWS
                 case "getwindows":
                 case "listwindows":
                     {
@@ -249,7 +321,7 @@ namespace Forms_Control
                         commandReturn = windows;
 
                         if (printOutput)
-                            foreach(IntPtr hWnd in WinController.GetWindows())
+                            foreach (IntPtr hWnd in WinController.GetWindows())
                             {
                                 // Get the name of each window
                                 string text = WinController.GetWindowText(hWnd);
@@ -258,7 +330,7 @@ namespace Forms_Control
 
                         return CommandError.Success;
                     }
-                // GETWINDOWTITLE %HWND%
+                // GETWINDOWTITLE %hwnd%
                 case "getwindowtitle":
                     {
                         // Check for the first parameter
@@ -268,16 +340,8 @@ namespace Forms_Control
                                 Console.WriteLine("Error: Not anough arguments.");
                             return CommandError.NotEnoughArguments;
                         }
-                        // Parse the first argument as a pointer
-                        int ptr;
-                        if (!Int32.TryParse(commands[1], out ptr))
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Invalid window handle.");
-                            return CommandError.InvalidArgument;
-                        }
                         // Get the window's text from the pointer and complain if the window does not exist or has no title
-                        commandReturn = WinController.GetWindowText((IntPtr)ptr);
+                        commandReturn = WinController.GetWindowText(readPtr(commands, printOutput));
                         if ((string)commandReturn == "")
                         {
                             if (printOutput)
@@ -289,9 +353,9 @@ namespace Forms_Control
 
                         return CommandError.Success;
                     }
-                // DISABLE %HWND%
-                // ENABLE %HWND%
+                // DISABLE %hwnd%
                 case "disable":
+                // ENABLE %hwnd%
                 case "enable":
                     {
                         // Decide if the user wants to enable or disable the window
@@ -308,20 +372,14 @@ namespace Forms_Control
                                 Console.WriteLine("Error: Not anough arguments.");
                             return CommandError.NotEnoughArguments;
                         }
-                        // Parse the first argument as a pointer
-                        int ptr;
-                        if (!Int32.TryParse(commands[1], out ptr))
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Invalid window handle.");
-                            return CommandError.InvalidArgument;
-                        }
                         // Enable the given window and complain if it doesn't work
-                        if (!WinController.EnableWindow((IntPtr)ptr, enabled))
+                        IntPtr ptr = readPtr(commands, printOutput);
+                        if (ptr == IntPtr.Zero) return CommandError.InvalidArgument;
+                        if (!WinController.EnableWindow(ptr, enabled))
                         {
                             // Check to make sure it didn't work
                             int lasterror = Marshal.GetLastWin32Error();
-                            if (WinController.IsWindowEnabled((IntPtr)ptr) != enabled || !WinController.IsWindow((IntPtr)ptr))
+                            if (WinController.IsWindowEnabled(ptr) != enabled || !WinController.IsWindow(ptr))
                             {
                                 if (printOutput)
                                     Console.WriteLine("Error: " + new Win32Exception(Marshal.GetLastWin32Error()).Message + ".");
@@ -339,6 +397,7 @@ namespace Forms_Control
 
                         return CommandError.Success;
                     }
+                // BRINGTOTOP %hwnd%
                 case "bringtotop":
                     {
                         // Check for the first parameter
@@ -348,16 +407,10 @@ namespace Forms_Control
                                 Console.WriteLine("Error: Not anough arguments.");
                             return CommandError.NotEnoughArguments;
                         }
-                        // Parse the first argument as a pointer
-                        int ptr;
-                        if (!Int32.TryParse(commands[1], out ptr))
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Invalid window handle.");
-                            return CommandError.InvalidArgument;
-                        }
                         // Bring the window to the top and complain if it doesn't work
-                        if (!WinController.BringWindowToTop((IntPtr)ptr))
+                        IntPtr ptr = readPtr(commands, printOutput);
+                        if (ptr == IntPtr.Zero) return CommandError.InvalidHandle;
+                        if (!WinController.BringWindowToTop(ptr))
                         {
                             // Get the resulting error
                             int lasterror = Marshal.GetLastWin32Error();
@@ -371,6 +424,7 @@ namespace Forms_Control
 
                         return CommandError.Success;
                     }
+                // SETFOCUS %hwnd%
                 case "setfocus":
                     {
                         // Check for the first parameter
@@ -380,16 +434,10 @@ namespace Forms_Control
                                 Console.WriteLine("Error: Not anough arguments.");
                             return CommandError.NotEnoughArguments;
                         }
-                        // Parse the first argument as a pointer
-                        int ptr;
-                        if (!Int32.TryParse(commands[1], out ptr))
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Invalid window handle.");
-                            return CommandError.InvalidArgument;
-                        }
                         // Give the window focus and complain if it doesn't work
-                        IntPtr lastFocus = WinController.SetFocus((IntPtr)ptr);
+                        IntPtr ptr = readPtr(commands, printOutput);
+                        if (ptr == IntPtr.Zero) return CommandError.InvalidHandle;
+                        IntPtr lastFocus = WinController.SetFocus(ptr);
                         if (lastFocus == IntPtr.Zero)
                         {
                             // Get the resulting error
@@ -404,9 +452,10 @@ namespace Forms_Control
 
                         return CommandError.Success;
                     }
+                // GETFOCUS
                 case "getfocus":
                     {
-                        // Get the window has focus and complain if it doesn't work
+                        // Get the window that has focus and complain if it doesn't work
                         IntPtr focus = WinController.GetFocus();
                         if (focus == IntPtr.Zero)
                         {
@@ -419,6 +468,76 @@ namespace Forms_Control
                         // Print the output
                         if (printOutput)
                             Console.WriteLine(focus.ToString() + " currently has focus.");
+
+                        return CommandError.Success;
+                    }
+                // ISENABLED %hwnd%
+                case "isenabled":
+                    {
+                        // Interpret the first argument as a pointer and complain if it can't
+                        commandReturn = readPtr(commands, printOutput);
+                        if ((IntPtr)commandReturn == IntPtr.Zero) return CommandError.InvalidHandle;
+
+                        // Return whether the window is enabled or not
+                        commandReturn = WinController.IsWindowEnabled((IntPtr)commandReturn);
+                        return returnCommand(printOutput);
+                    }
+                // ISMINIMIZED %hwnd%
+                case "isminimized":
+                    {
+                        // Interpret the first argument as a pointer and complain if it can't
+                        commandReturn = readPtr(commands, printOutput);
+                        if ((IntPtr)commandReturn == IntPtr.Zero) return CommandError.InvalidHandle;
+
+                        // Return whether the window is minimized or not
+                        commandReturn = WinController.IsIconic((IntPtr)commandReturn);
+                        return returnCommand(printOutput);
+                    }
+                // ISVISIBLE %hwnd%
+                case "isvisible":
+                    {
+                        // Interpret the first argument as a pointer and complain if it can't
+                        commandReturn = readPtr(commands, printOutput);
+                        if ((IntPtr)commandReturn == IntPtr.Zero) return CommandError.InvalidHandle;
+
+                        // Return whether the window is visible or not
+                        commandReturn = WinController.IsWindowVisible((IntPtr)commandReturn);
+                        return returnCommand(printOutput);
+                    }
+                // ISWINDOW %hwnd%
+                case "iswindow":
+                    {
+                        // Interpret the first argument as a pointer and complain if it can't
+                        commandReturn = readPtr(commands, printOutput);
+                        if ((IntPtr)commandReturn == IntPtr.Zero) return CommandError.InvalidHandle;
+
+                        // Return whether the handle is a window or not
+                        commandReturn = WinController.IsWindow((IntPtr)commandReturn);
+                        return returnCommand(printOutput);
+                    }
+                // SAY [%title%] %text% [%time%] or TALK [%title%] %text% [%time%]
+                // TODO: Implement %title% and %time%
+                case "say":
+                    {
+                        commandReturn = 4;
+                        goto case "talk";
+                    }
+                case "talk":
+                    {
+                        if (commandReturn == null)
+                            commandReturn = 5;
+
+                        string text = translateEscapeSequences(command.Substring((int)commandReturn));
+                        puppet.BeginInvoke(new Action(() => { puppet.Say(text); }));
+
+                        return CommandError.Success;
+                    }
+                // NOTIFY [%title%] %text% [%time%]
+                // TODO: Implement %title% and %time%
+                case "notify":
+                    {
+                        string text = translateEscapeSequences(command.Substring(7));
+                        puppet.BeginInvoke(new Action(() => { puppet.Notify(text); }));
 
                         return CommandError.Success;
                     }
@@ -438,6 +557,29 @@ namespace Forms_Control
                 addVar(name, command);
 
             commandReturn = vars[name];
+            return CommandError.Success;
+        }
+
+        /* Reads the given pointer and outputs error data if printOutput is true */
+        private static IntPtr readPtr(string[] commands, bool printOutput)
+        {
+            int ptr;
+            if (!Int32.TryParse(commands[1], out ptr))
+            {
+                if (printOutput)
+                    Console.WriteLine("Error: Invalid window handle.");
+                return IntPtr.Zero;
+            }
+            return new IntPtr(ptr);
+        }
+
+        /* Spits out the command return */
+        private CommandError returnCommand(bool printOutput)
+        {
+            // If we're allowed to print the variable, do so
+            if (printOutput)
+                Console.WriteLine(commandReturn.ToString());
+
             return CommandError.Success;
         }
     }

@@ -63,7 +63,7 @@ namespace Screensaver
                     File.Delete(filename);
                     fail = false;
                 }
-                catch (Exception) {}
+                catch (Exception) { }
             } while (fail);
         }
 

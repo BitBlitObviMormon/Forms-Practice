@@ -181,14 +181,14 @@ namespace Nonconventional_Forms
         {
             if (e.Button == MouseButtons.Left)
             {
-//                ReleaseCapture();
-//                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+                //                ReleaseCapture();
+                //                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
             }
         }
 
         /* Closes the form when it is right clicked twice */
         private void Form1_MouseDoubleClick(object sender, MouseEventArgs e)
-        { 
+        {
             Close();
         }
 

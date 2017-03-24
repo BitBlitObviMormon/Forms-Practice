@@ -10,43 +10,66 @@ namespace Forms_Control
     public partial class PuppetForm : Form
     {
         /* All of the points for easy reference */
-        private int w            { get { return Size.Width;            } }
-        private int h            { get { return Size.Height;           } }
-        private int midw         { get { return w / 2;                 } }
-        private int midh         { get { return h / 2;                 } }
-        private int x            { get { return w    + Location.X;     } }
-        private int y            { get { return h    + Location.Y;     } }
-        private int midx         { get { return midw + Location.X;     } }
-        private int midy         { get { return midh + Location.Y;     } }
-        public Point top         { get { return new Point(midx, Location.Y);        } set { value.Offset(new Point(-midw, 0));     Location = value; } }
-        public Point bottom      { get { return new Point(midx, y);                 } set { value.Offset(new Point(-midw, -h));    Location = value; } }
-        public Point left        { get { return new Point(Location.X, midy);        } set { value.Offset(new Point(0, -midh));     Location = value; } }
-        public Point right       { get { return new Point(x, midy);                 } set { value.Offset(new Point(-w, -midh));    Location = value; } }
-        public Point center      { get { return new Point(midx, midy);              } set { value.Offset(new Point(-midw, -midh)); Location = value; } }
-        public Point topLeft     { get { return new Point(Location.X, Location.Y);  } set {                                        Location = value; } }
-        public Point topRight    { get { return new Point(x, Location.Y);           } set { value.Offset(new Point(-w, 0));        Location = value; } }
-        public Point bottomLeft  { get { return new Point(Location.X, y);           } set { value.Offset(new Point(0, -h));        Location = value; } }
-        public Point bottomRight { get { return new Point(x, y);                    } set { value.Offset(new Point(-w, -h));       Location = value; } }
+        private int w { get { return Size.Width; } }
+        private int h { get { return Size.Height; } }
+        private int midw { get { return w / 2; } }
+        private int midh { get { return h / 2; } }
+        private int x { get { return w + Location.X; } }
+        private int y { get { return h + Location.Y; } }
+        private int midx { get { return midw + Location.X; } }
+        private int midy { get { return midh + Location.Y; } }
+        public Point top { get { return new Point(midx, Location.Y); } set { value.Offset(new Point(-midw, 0)); Location = value; } }
+        public Point bottom { get { return new Point(midx, y); } set { value.Offset(new Point(-midw, -h)); Location = value; } }
+        public Point left { get { return new Point(Location.X, midy); } set { value.Offset(new Point(0, -midh)); Location = value; } }
+        public Point right { get { return new Point(x, midy); } set { value.Offset(new Point(-w, -midh)); Location = value; } }
+        public Point center { get { return new Point(midx, midy); } set { value.Offset(new Point(-midw, -midh)); Location = value; } }
+        public Point topLeft { get { return new Point(Location.X, Location.Y); } set { Location = value; } }
+        public Point topRight { get { return new Point(x, Location.Y); } set { value.Offset(new Point(-w, 0)); Location = value; } }
+        public Point bottomLeft { get { return new Point(Location.X, y); } set { value.Offset(new Point(0, -h)); Location = value; } }
+        public Point bottomRight { get { return new Point(x, y); } set { value.Offset(new Point(-w, -h)); Location = value; } }
+
+        /* The puppet's name */
+        public string name;
+
+        /* If this is the form's first draw (for initialization with graphics purposes) */
+        private bool firstDraw;
+
+        /* The Puppet Form's image */
+        Bitmap image;
 
         /* How close the target will move towards a point before stopping */
         /* Regardless of what this is set to, it will always move to exactly the point given */
         const float CloseDistance = 1.0f;
-        
+
         /* Initializes the window */
         public PuppetForm()
         {
+            name = "Your totally not shady friend";
+            firstDraw = true;
+
             InitializeComponent();
         }
 
         /* Paints the window and changes its region */
         private void PuppetForm_Paint(object sender, PaintEventArgs e)
         {
-            // Draw the target image onto the form
-            RegionFactory factory = new RegionFactory();
-            Bitmap image = new Bitmap("..\\..\\target.png");
-            Size = image.Size;
-            factory.add(image, Color.FromArgb(255, 0, 0, 0));
-            Region = factory.region;
+            // Runs when the form is first drawn
+            if (firstDraw)
+            {
+                // Draw the target image onto the form
+                firstDraw = false;
+                image = new Bitmap("..\\..\\target.png");
+                RegionFactory factory = new RegionFactory();
+                Size = image.Size;
+                factory.add(image, Color.FromArgb(255, 0, 0, 0));
+                Region = factory.region;
+
+                // Be creepy and say hi
+                Say("Hello and welcome! I am your totally not shady friend, nice to meet you!", 30000, ToolTipIcon.Error);
+                Notify("Did I mention that I can also talk to you from the taskbar?", 30000, ToolTipIcon.Error);
+            }
+
+            // Draw the form
             e.Graphics.DrawImage(image, 0, 0);
         }
 
@@ -54,6 +77,39 @@ namespace Forms_Control
         private void PuppetForm_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             Close();
+        }
+
+        /* Make a speech bubble pop up in the taskbar */
+        public void Notify(string title, string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None, Icon icon = null)
+        {
+            if (icon == null) icon = SystemIcons.Application;
+            notifyBubble.Visible = true;
+            notifyBubble.Icon = icon;
+            notifyBubble.ShowBalloonTip(time, title, text, tipIcon);
+        }
+        
+        /* Make a speech bubble pop up in the taskbar */
+        public void Notify(string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None, Icon icon = null)
+        {
+            Notify(name, text, time, tipIcon, icon);
+        }
+
+        /* Make the window show something in a speech bubble */
+        public void Say(string title, string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None)
+        {
+            chatBubble.ToolTipTitle = title;
+            chatBubble.ToolTipIcon = tipIcon;
+
+            // TODO: Show popup without stealing focus, perhaps the way is here?
+            // http://stackoverflow.com/questions/156046/show-a-form-without-stealing-focus
+            Focus(); // Steal focus to show the bubble
+            chatBubble.Show(text, this, (w + midw) / 2, -60, time);
+        }
+
+        /* Make the window show something in a speech bubble */
+        public void Say(string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None)
+        {
+            Say(name, text, time, tipIcon);
         }
 
         /* Returns the square of the distance between two points */
@@ -177,7 +233,7 @@ namespace Forms_Control
                 // Update the window's position
                 BeginInvoke(new Action(delegate()
                 {
-                    switch(side.ToLower())
+                    switch (side.ToLower())
                     {
                         case "top":
                             top = Point.Round(new PointF(pos.X, pos.Y));
@@ -253,52 +309,52 @@ namespace Forms_Control
             // Update the window to the exact position (now that it's close)
             BeginInvoke(new Action(delegate()
             {
-                switch(side.ToLower())
+                switch (side.ToLower())
                 {
                     case "top":
                         top = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + top.ToString());
+                            Console.WriteLine("Moved to " + top.ToString());
                         break;
                     case "bottom":
                         bottom = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + bottom.ToString());
+                            Console.WriteLine("Moved to " + bottom.ToString());
                         break;
                     case "left":
                         left = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + left.ToString());
+                            Console.WriteLine("Moved to " + left.ToString());
                         break;
                     case "right":
                         right = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + right.ToString());
+                            Console.WriteLine("Moved to " + right.ToString());
                         break;
                     case "center":
                         center = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + center.ToString());
+                            Console.WriteLine("Moved to " + center.ToString());
                         break;
                     case "topleft":
                         topLeft = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + topLeft.ToString());
+                            Console.WriteLine("Moved to " + topLeft.ToString());
                         break;
                     case "topright":
                         topRight = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + topRight.ToString());
+                            Console.WriteLine("Moved to " + topRight.ToString());
                         break;
                     case "bottomleft":
                         bottomLeft = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + bottomLeft.ToString());
+                            Console.WriteLine("Moved to " + bottomLeft.ToString());
                         break;
                     case "bottomright":
                         bottomRight = Point.Round(new PointF(x, y));
                         if (printOutput)
-							Console.WriteLine("Moved to " + bottomRight.ToString());
+                            Console.WriteLine("Moved to " + bottomRight.ToString());
                         break;
                 }
             }));

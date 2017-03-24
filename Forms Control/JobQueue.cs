@@ -26,7 +26,7 @@ namespace Forms_Control
                 {
                     jobs.Peek().Start();
                 }
-           }
+            }
         }
 
         /* Adds a job to the queue */

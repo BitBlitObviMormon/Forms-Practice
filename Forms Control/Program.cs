@@ -24,7 +24,9 @@ namespace Forms_Control
             consoleThread.IsBackground = true;
             consoleThread.Start();
 
-//            new Thread(CBackground).Start();
+            Thread bonusThread = new Thread(CBackground);
+            bonusThread.IsBackground = true;
+            bonusThread.Start();
 
             // Run the application
             Application.Run(form);
@@ -47,7 +49,7 @@ namespace Forms_Control
             while (true)
             {
                 Thread.Sleep(1000);
-                Program.commandManager.runCommand("getfocus");
+//                Program.commandManager.runCommand("say I like your name!");
             }
         }
     }

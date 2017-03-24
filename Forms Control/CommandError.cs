@@ -1,17 +1,17 @@
-﻿
-namespace Forms_Control
+﻿namespace Forms_Control
 {
     public sealed class CommandError
     {
-        public static readonly CommandError Success = new CommandError(1);
-        public static readonly CommandError Null = new CommandError(0);
-        public static readonly CommandError InvalidCommand = new CommandError(-1);
-        public static readonly CommandError InvalidArgument = new CommandError(-2);
-        public static readonly CommandError VarDoesNotExist = new CommandError(-3);
+        public static readonly CommandError Success            = new CommandError( 1);
+        public static readonly CommandError Null               = new CommandError( 0);
+        public static readonly CommandError InvalidCommand     = new CommandError(-1);
+        public static readonly CommandError InvalidArgument    = new CommandError(-2);
+        public static readonly CommandError VarDoesNotExist    = new CommandError(-3);
         public static readonly CommandError NotEnoughArguments = new CommandError(-4);
-        public static readonly CommandError InvalidHandle = new CommandError(-5);
+        public static readonly CommandError InvalidHandle      = new CommandError(-5);
+        public static readonly CommandError NoCommandGiven     = new CommandError(-6);
 
-        private readonly int err;        
+        private readonly int err;
         private CommandError(int err) { this.err = err; }
 
         public static implicit operator CommandError(int value) { return new CommandError(value); }
@@ -34,6 +34,8 @@ namespace Forms_Control
                     return "Not enough arguments were passed";
                 case -5:
                     return "An invalid window handle was passed";
+                case -6:
+                    return "No command was given";
                 default:
                     return "Invalid error code";
             }
