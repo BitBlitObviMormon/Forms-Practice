@@ -222,7 +222,12 @@ namespace Forms_Control
                 // EXIT
                 case "exit":
                     {
-                        Environment.Exit(0); // Close the application
+                        // Close the application
+                        if (Application.MessageLoop)
+                            Application.Exit();
+                        else
+                            Environment.Exit(0);
+
                         return CommandError.Success;
                     }
                 // CLEAR
