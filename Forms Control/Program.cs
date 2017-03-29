@@ -19,17 +19,12 @@ namespace Forms_Control
             Application.SetCompatibleTextRenderingDefault(false);
 
             // Start the console program
-            PuppetForm form = new PuppetForm();
-            Thread consoleThread = new Thread(() => CMain(form));
-            consoleThread.IsBackground = true;
-            consoleThread.Start();
+            PuppetForm form = null;
+            CMain(form);
 
             Thread bonusThread = new Thread(CBackground);
             bonusThread.IsBackground = true;
             bonusThread.Start();
-
-            // Run the application
-            Application.Run(form);
         }
 
         // The console's main loop
@@ -37,6 +32,9 @@ namespace Forms_Control
         {
             Console.Title = "Forms Controller Console";
             Program.commandManager = new CommandManager(form);
+            
+            // Tell the user how to make the form show
+            Console.WriteLine("Thank you for using the Forms Control program.\nTo begin type show in the console to start the main puppet form.");
 
             while (true)
             {

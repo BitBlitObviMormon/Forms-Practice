@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Forms_Control
@@ -109,6 +110,12 @@ namespace Forms_Control
          *****************************************************************************************************
          * void NOTIFY [%title%] %text% [%time%]                                                             *
          * Makes the puppet form display a notification with the given text and title for the given duration *
+         *****************************************************************************************************
+         * SHOW                                                                                              *
+         * Shows the puppet form                                                                             *
+         *****************************************************************************************************
+         * HIDE                                                                                              *
+         * Hides the puppet form                                                                             *
          *****************************************************************************************************/
         public int runCommand(string command, bool printOutput = true)
         {
@@ -215,7 +222,7 @@ namespace Forms_Control
                 // EXIT
                 case "exit":
                     {
-                        Application.Exit(); // Close the application
+                        Environment.Exit(0); // Close the application
                         return CommandError.Success;
                     }
                 // CLEAR
@@ -227,6 +234,13 @@ namespace Forms_Control
                 // MOVETO %x% %y% [%speed%] [%side%]
                 case "moveto":
                     {
+                        if (puppet == null)
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: Puppet form has not been created yet, use show command to create one.");
+                            return CommandError.PuppetNotCreated;
+                        }
+
                         commands = command.ToLower().Split(new[] { ' ', ',', '(', ')', '\"' }, StringSplitOptions.RemoveEmptyEntries);
 
                         // Check to make sure the number of parameters is 2 or more
@@ -267,14 +281,14 @@ namespace Forms_Control
                         // Move the puppet to the given coordinates
                         if (printOutput)
                             Console.WriteLine("Moving to (" + x.ToString() + ", " + y.ToString() + ")");
-                        int i = 0;
+//                        int i = 0;
                         jobs.add(() => puppet.MoveTo(x, y, speed, side, new Func<float, float, bool>((float px, float py) =>
                         {
-                            if (i++ == 10)
-                            {
-                                Console.WriteLine(new PointF(px, py).ToString());
-                                i = 0;
-                            }
+//                            if (i++ == 10)
+//                            {
+//                                Console.WriteLine(new PointF(px, py).ToString());
+//                                i = 0;
+//                            }
                             return true;
                         })));
 
@@ -527,6 +541,13 @@ namespace Forms_Control
                         if (commandReturn == null)
                             commandReturn = 5;
 
+                        if (puppet == null)
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: Puppet form has not been created yet, use show command to create one.");
+                            return CommandError.PuppetNotCreated;
+                        }
+
                         string text = translateEscapeSequences(command.Substring((int)commandReturn));
                         puppet.BeginInvoke(new Action(() => { puppet.Say(text); }));
 
@@ -536,9 +557,38 @@ namespace Forms_Control
                 // TODO: Implement %title% and %time%
                 case "notify":
                     {
+                        if (puppet == null)
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: Puppet form has not been created yet, use show command to create one.");
+                            return CommandError.PuppetNotCreated;
+                        }
+
                         string text = translateEscapeSequences(command.Substring(7));
                         puppet.BeginInvoke(new Action(() => { puppet.Notify(text); }));
 
+                        return CommandError.Success;
+                    }
+                // SHOW
+                case "show":
+                    {
+                        if (puppet == null)
+                            new Thread(() => { Application.Run(puppet = new PuppetForm()); }).Start();
+                        else
+                            puppet.BeginInvoke(new Action(() => { puppet.Visible = true; }));
+                        return CommandError.Success;
+                    }
+                // HIDE
+                case "hide":
+                    {
+                        if (puppet == null)
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: Puppet form has not been created yet, use show command to create one.");
+                            return CommandError.PuppetNotCreated;
+                        }
+
+                        puppet.BeginInvoke(new Action(() => { puppet.Visible = false; }));
                         return CommandError.Success;
                     }
             }

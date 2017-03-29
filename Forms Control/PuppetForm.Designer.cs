@@ -49,6 +49,7 @@
             this.ClientSize = new System.Drawing.Size(300, 300);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "PuppetForm";
+            this.ShowInTaskbar = false;
             this.Text = "Forms Controller";
             this.TopMost = true;
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.PuppetForm_Paint);

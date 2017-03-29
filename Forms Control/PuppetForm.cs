@@ -100,8 +100,9 @@ namespace Forms_Control
             chatBubble.ToolTipTitle = title;
             chatBubble.ToolTipIcon = tipIcon;
 
-            // TODO: Show popup without stealing focus, perhaps the way is here?
+            // TODO: Show chat bubble without stealing focus, perhaps the way is here?
             // http://stackoverflow.com/questions/156046/show-a-form-without-stealing-focus
+            // Of course, if I'm going to use a separate form I might as well make it a part of the puppet form.
             Focus(); // Steal focus to show the bubble
             chatBubble.Show(text, this, (w + midw) / 2, -60, time);
         }

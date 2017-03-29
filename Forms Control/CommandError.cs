@@ -10,6 +10,7 @@
         public static readonly CommandError NotEnoughArguments = new CommandError(-4);
         public static readonly CommandError InvalidHandle      = new CommandError(-5);
         public static readonly CommandError NoCommandGiven     = new CommandError(-6);
+        public static readonly CommandError PuppetNotCreated   = new CommandError(-7);
 
         private readonly int err;
         private CommandError(int err) { this.err = err; }
@@ -36,6 +37,8 @@
                     return "An invalid window handle was passed";
                 case -6:
                     return "No command was given";
+                case -7:
+                    return "A puppet has not been created yet";
                 default:
                     return "Invalid error code";
             }
