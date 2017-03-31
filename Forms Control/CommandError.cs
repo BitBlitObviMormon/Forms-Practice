@@ -11,9 +11,11 @@
         public static readonly CommandError InvalidHandle      = new CommandError(-5);
         public static readonly CommandError NoCommandGiven     = new CommandError(-6);
         public static readonly CommandError PuppetNotCreated   = new CommandError(-7);
+        public static readonly CommandError PuppetNotVisible   = new CommandError(-8);
 
         private readonly int err;
         private CommandError(int err) { this.err = err; }
+        private CommandError(CommandError err) { this.err = err.err; }
 
         public static implicit operator CommandError(int value) { return new CommandError(value); }
         public static implicit operator int(CommandError err) { return err.err; }
@@ -28,7 +30,7 @@
                 case -1:
                     return "Invalid command";
                 case -2:
-                    return "Invalid argument";
+                    return "An invalid argument was given";
                 case -3:
                     return "Variable does not exist";
                 case -4:
@@ -38,7 +40,9 @@
                 case -6:
                     return "No command was given";
                 case -7:
-                    return "A puppet has not been created yet";
+                    return "Puppet form has not been created yet, use show command to create one";
+                case -8:
+                    return "Puppet form needs to be visible in order to run this command";
                 default:
                     return "Invalid error code";
             }

@@ -111,11 +111,11 @@ namespace Forms_Control
          * void NOTIFY [%title%] %text% [%time%]                                                             *
          * Makes the puppet form display a notification with the given text and title for the given duration *
          *****************************************************************************************************
-         * SHOW                                                                                              *
-         * Shows the puppet form                                                                             *
+         * SHOW [%hwnd%]                                                                                     *
+         * Shows the given window (puppet form is the default)                                               *
          *****************************************************************************************************
-         * HIDE                                                                                              *
-         * Hides the puppet form                                                                             *
+         * HIDE [%hwnd%]                                                                                     *
+         * Hides the given window (puppet form is the default)                                               *
          *****************************************************************************************************/
         public int runCommand(string command, bool printOutput = true)
         {
@@ -123,11 +123,7 @@ namespace Forms_Control
             commandReturn = null;
 
             if (commands.Length < 1)
-            {
-                if (printOutput)
-                    Console.WriteLine("Error: No command was given.");
-                return CommandError.NoCommandGiven;
-            }
+                return printErr(CommandError.NoCommandGiven, printOutput);
 
             switch (commands[0])
             {
@@ -139,11 +135,8 @@ namespace Forms_Control
                         {
                             // If there aren't any arguments passed, complain
                             if (commands.Length <= 1)
-                            {
-                                if (printOutput)
-                                    Console.WriteLine("Error: Not enough arguments.");
-                                return CommandError.NotEnoughArguments;
-                            }
+                                return printErr(CommandError.NotEnoughArguments, printOutput);
+
                             // Get the value of the variable
                             string name = commands[1];
                             if (printOutput)
@@ -154,9 +147,7 @@ namespace Forms_Control
                         // If the variable could not be found, complain
                         catch (KeyNotFoundException)
                         {
-                            if (printOutput)
-                                Console.WriteLine("Error: " + commands[1] + " does not exist.");
-                            return CommandError.VarDoesNotExist;
+                            return printErr(CommandError.VarDoesNotExist, printOutput);
                         }
                     }
                 // SET %var% = %value%
@@ -164,29 +155,20 @@ namespace Forms_Control
                     {
                         // If there aren't any arguments passed, complain
                         if (commands.Length <= 1)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Not enough arguments.");
-                            return CommandError.NotEnoughArguments;
-                        }
+                            return printErr(CommandError.NotEnoughArguments, printOutput);
+
                         // If there aren't enough arguments passed, complain
                         string name = commands[1];
                         if (command.Length < 5 + name.Length)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Not enough arguments.");
-                            return CommandError.NotEnoughArguments;
-                        }
+                            return printErr(CommandError.NotEnoughArguments, printOutput);
+                        
                         string value = command.Substring(5 + name.Length);
                         if (value.Contains("= "))
                             value = value.Substring(2);
+
                         // Set the variable to the value, if that fails, complain and explain why
                         if (set(name, value) != CommandError.Success)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: " + commandReturn.ToString() + ".");
-                            return CommandError.InvalidArgument;
-                        }
+                            return printErr(CommandError.InvalidArgument, printOutput);
 
                         if (printOutput)
                             printVar(name);
@@ -199,24 +181,20 @@ namespace Forms_Control
                         {
                             // If there aren't any arguments passed, complain
                             if (commands.Length <= 1)
-                            {
-                                if (printOutput)
-                                    Console.WriteLine("Error: Not enough arguments.");
-                                return CommandError.NotEnoughArguments;
-                            }
+                                return printErr(CommandError.NotEnoughArguments, printOutput);
+
                             // Delete the variable
                             string name = commands[1];
                             if (printOutput)
                                 Console.WriteLine("Deleted " + name + ".");
+
                             deleteVar(name);
                             return CommandError.Success;
                         }
                         // If the variable could not be found, complain
                         catch (KeyNotFoundException)
                         {
-                            if (printOutput)
-                                Console.WriteLine("Error: " + commands[1] + " does not exist.");
-                            return CommandError.VarDoesNotExist;
+                            return printErr(CommandError.VarDoesNotExist, printOutput);
                         }
                     }
                 // EXIT
@@ -242,7 +220,7 @@ namespace Forms_Control
                         if (puppet == null)
                         {
                             if (printOutput)
-                                Console.WriteLine("Error: Puppet form has not been created yet, use show command to create one.");
+                                Console.WriteLine("Error: " + CommandError.PuppetNotCreated.ToString() + ".");
                             return CommandError.PuppetNotCreated;
                         }
 
@@ -250,19 +228,13 @@ namespace Forms_Control
 
                         // Check to make sure the number of parameters is 2 or more
                         if (commands.Length <= 2)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Not enough arguments.");
-                            return CommandError.NotEnoughArguments;
-                        }
+                            return printErr(CommandError.NotEnoughArguments, printOutput);
+
                         // Try to parse the 1st and 2nd arguments as integers, if that fails, complain
                         int x = 0, y = 0;
                         if (!(Int32.TryParse(commands[1], out x) && Int32.TryParse(commands[2], out y)))
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Invalid arguments.");
-                            return CommandError.InvalidArgument;
-                        }
+                            return printErr(CommandError.InvalidArgument, printOutput);
+
                         // Check if there's a third argument and attempt to parse it as a float (speed), if that fails, parse it as a string (side)
                         float speed = 5.0f;
                         string side = "closest";
@@ -354,19 +326,13 @@ namespace Forms_Control
                     {
                         // Check for the first parameter
                         if (commands.Length <= 1)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Not anough arguments.");
-                            return CommandError.NotEnoughArguments;
-                        }
+                            return printErr(CommandError.NotEnoughArguments, printOutput);
+
                         // Get the window's text from the pointer and complain if the window does not exist or has no title
                         commandReturn = WinController.GetWindowText(readPtr(commands, printOutput));
                         if ((string)commandReturn == "")
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Invalid window handle.");
-                            return CommandError.InvalidHandle;
-                        }
+                            return printErr(CommandError.InvalidHandle, printOutput);
+
                         if (printOutput)
                             Console.WriteLine((string)commandReturn);
 
@@ -386,11 +352,8 @@ namespace Forms_Control
 
                         // Check for the first parameter
                         if (commands.Length <= 1)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Not anough arguments.");
-                            return CommandError.NotEnoughArguments;
-                        }
+                            return printErr(CommandError.NotEnoughArguments, printOutput);
+
                         // Enable the given window and complain if it doesn't work
                         IntPtr ptr = readPtr(commands, printOutput);
                         if (ptr == IntPtr.Zero) return CommandError.InvalidArgument;
@@ -421,11 +384,8 @@ namespace Forms_Control
                     {
                         // Check for the first parameter
                         if (commands.Length <= 1)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Not anough arguments.");
-                            return CommandError.NotEnoughArguments;
-                        }
+                            return printErr(CommandError.NotEnoughArguments, printOutput);
+
                         // Bring the window to the top and complain if it doesn't work
                         IntPtr ptr = readPtr(commands, printOutput);
                         if (ptr == IntPtr.Zero) return CommandError.InvalidHandle;
@@ -448,11 +408,8 @@ namespace Forms_Control
                     {
                         // Check for the first parameter
                         if (commands.Length <= 1)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Not anough arguments.");
-                            return CommandError.NotEnoughArguments;
-                        }
+                            return printErr(CommandError.NotEnoughArguments, printOutput);
+
                         // Give the window focus and complain if it doesn't work
                         IntPtr ptr = readPtr(commands, printOutput);
                         if (ptr == IntPtr.Zero) return CommandError.InvalidHandle;
@@ -499,7 +456,7 @@ namespace Forms_Control
 
                         // Return whether the window is enabled or not
                         commandReturn = WinController.IsWindowEnabled((IntPtr)commandReturn);
-                        return returnCommand(printOutput);
+                        return printReturnValue(printOutput);
                     }
                 // ISMINIMIZED %hwnd%
                 case "isminimized":
@@ -510,7 +467,7 @@ namespace Forms_Control
 
                         // Return whether the window is minimized or not
                         commandReturn = WinController.IsIconic((IntPtr)commandReturn);
-                        return returnCommand(printOutput);
+                        return printReturnValue(printOutput);
                     }
                 // ISVISIBLE %hwnd%
                 case "isvisible":
@@ -521,7 +478,7 @@ namespace Forms_Control
 
                         // Return whether the window is visible or not
                         commandReturn = WinController.IsWindowVisible((IntPtr)commandReturn);
-                        return returnCommand(printOutput);
+                        return printReturnValue(printOutput);
                     }
                 // ISWINDOW %hwnd%
                 case "iswindow":
@@ -532,7 +489,7 @@ namespace Forms_Control
 
                         // Return whether the handle is a window or not
                         commandReturn = WinController.IsWindow((IntPtr)commandReturn);
-                        return returnCommand(printOutput);
+                        return printReturnValue(printOutput);
                     }
                 // SAY [%title%] %text% [%time%] or TALK [%title%] %text% [%time%]
                 // TODO: Implement %title% and %time%
@@ -547,11 +504,7 @@ namespace Forms_Control
                             commandReturn = 5;
 
                         if (puppet == null)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Puppet form has not been created yet, use show command to create one.");
-                            return CommandError.PuppetNotCreated;
-                        }
+                            return printErr(CommandError.PuppetNotCreated, printOutput);
 
                         string text = translateEscapeSequences(command.Substring((int)commandReturn));
                         puppet.BeginInvoke(new Action(() => { puppet.Say(text); }));
@@ -563,18 +516,15 @@ namespace Forms_Control
                 case "notify":
                     {
                         if (puppet == null)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Puppet form has not been created yet, use show command to create one.");
-                            return CommandError.PuppetNotCreated;
-                        }
+                            return printErr(CommandError.PuppetNotCreated, printOutput);
 
                         string text = translateEscapeSequences(command.Substring(7));
                         puppet.BeginInvoke(new Action(() => { puppet.Notify(text); }));
 
                         return CommandError.Success;
                     }
-                // SHOW
+                // SHOW [%hwnd%]
+                // TODO: Implement hwnd
                 case "show":
                     {
                         if (puppet == null)
@@ -583,24 +533,27 @@ namespace Forms_Control
                             puppet.BeginInvoke(new Action(() => { puppet.Visible = true; }));
                         return CommandError.Success;
                     }
-                // HIDE
+                // HIDE [%hwnd%]
+                // TODO: Implement hwnd
                 case "hide":
                     {
                         if (puppet == null)
-                        {
-                            if (printOutput)
-                                Console.WriteLine("Error: Puppet form has not been created yet, use show command to create one.");
-                            return CommandError.PuppetNotCreated;
-                        }
+                            return printErr(CommandError.PuppetNotCreated, printOutput);
 
                         puppet.BeginInvoke(new Action(() => { puppet.Visible = false; }));
                         return CommandError.Success;
                     }
             }
 
+            return printErr(CommandError.InvalidCommand, printOutput);
+        }
+
+        /* Prints the command if printOutput is set to true */
+        private CommandError printErr(CommandError err, bool printOutput)
+        {
             if (printOutput)
-                Console.WriteLine("Error: invalid command.");
-            return CommandError.InvalidCommand;
+                Console.WriteLine("Error: " + err.ToString() + ".");
+            return err;
         }
 
         /* Sets the variable %name% to whatever command was given (could be int, string, evaluation, etc.) */
@@ -628,8 +581,8 @@ namespace Forms_Control
             return new IntPtr(ptr);
         }
 
-        /* Spits out the command return */
-        private CommandError returnCommand(bool printOutput)
+        /* Spits out the command return and returns CommandError.Success */
+        private CommandError printReturnValue(bool printOutput)
         {
             // If we're allowed to print the variable, do so
             if (printOutput)
