@@ -16,13 +16,54 @@ namespace Forms_Control
         private JobQueue jobs;
         public Object commandReturn { get; private set; }
 
+        /* Event that's called when the console is closing unexpectedly or by the user clicking the X */
+        private void OnConsoleClosing(object sender, CtrlSigEventArgs args)
+        {
+            switch (args.type)
+            {
+                // The console caught a CTRL-BREAK or CTRL-C signal
+                case CtrlSigType.CTRL_BREAK_EVENT:
+                case CtrlSigType.CTRL_C_EVENT:
+                    Console.WriteLine("Type exit to quit.");
+                    return;
+                // The console is closing unexpectedly or by user interaction
+                case CtrlSigType.CTRL_CLOSE_EVENT:
+                case CtrlSigType.CTRL_LOGOFF_EVENT:
+                case CtrlSigType.CTRL_SHUTDOWN_EVENT:
+                default:
+                    // If the puppet is alive, dispose of it properly
+                    if (puppet != null)
+                    {
+                        if (!puppet.IsDisposed)
+                            puppet.Invoke(new Action(puppet.Dispose));
+                    }
+
+                    return;
+            }
+        }
+
+        /* Hooks onto the console to capture control signals */
+        private void hookConsole(Action<object, CtrlSigEventArgs> func, bool captureBreaks = false)
+        {
+            // Disable default CTRL-C and CTRL-BREAK behaviour if we want to capture them
+            if (captureBreaks)
+                Console.CancelKeyPress += new ConsoleCancelEventHandler((object sender, ConsoleCancelEventArgs args) => { args.Cancel = true; });
+
+            // Attach the hook
+            new CtrlSigEvent(OnConsoleClosing);
+        }
+
         /* Constructor */
         public CommandManager(PuppetForm puppet)
         {
+            // Set up the Command Manager's vars and job queue
             vars = new Dictionary<string, object>();
             jobs = new JobQueue();
             this.puppet = puppet;
             jobs.start();
+
+            // Hook onto the console to dispose of the PuppetForm properly when it closes
+            hookConsole(OnConsoleClosing, true);
         }
 
         /* Adds a variable to the list of variables */
@@ -119,6 +160,9 @@ namespace Forms_Control
          *****************************************************************************************************/
         public int runCommand(string command, bool printOutput = true)
         {
+            if (command == null)
+                return CommandError.Null;
+
             string[] commands = command.ToLower().Split(new[] { ' ', '=' }, StringSplitOptions.RemoveEmptyEntries);
             commandReturn = null;
 
@@ -200,11 +244,11 @@ namespace Forms_Control
                 // EXIT
                 case "exit":
                     {
-                        // Close the application
-                        if (Application.MessageLoop)
-                            Application.Exit();
-                        else
-                            Environment.Exit(0);
+                        // If the puppet is alive, dispose of it properly
+                        if (puppet != null)
+                            puppet.Invoke(new Action(puppet.Dispose));
+
+                        Environment.Exit(0); // Close the application
 
                         return CommandError.Success;
                     }

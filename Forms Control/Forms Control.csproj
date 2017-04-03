@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="CommandError.cs" />
     <Compile Include="CommandManager.cs" />
+    <Compile Include="CtrlSigHandler.cs" />
     <Compile Include="JobQueue.cs" />
     <Compile Include="PuppetForm.cs">
       <SubType>Form</SubType>
