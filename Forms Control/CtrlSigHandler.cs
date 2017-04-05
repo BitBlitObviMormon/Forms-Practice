@@ -27,11 +27,10 @@
         private delegate bool EventHandler(CtrlSigType sig);
 
         /* Initializer */
-        public CtrlSigEvent() { }
+        public CtrlSigEvent() {}
 
         /* Initializer with subscription */
-        public CtrlSigEvent(System.Action<object, CtrlSigEventArgs> eventToSubscribe)
-            : this()
+        public CtrlSigEvent(System.Action<object, CtrlSigEventArgs> eventToSubscribe) : this()
         {
             // Subscribe a CtrlSigEvent
             setHandle(eventToSubscribe, true);
