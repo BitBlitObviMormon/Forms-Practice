@@ -1,6 +1,9 @@
 ﻿namespace Forms_Control
 {
-    /* Contains the types of events */
+    /************************************************************
+     * CONTROL SIGNAL TYPE                                      *
+     * Contains the types of events for console control signals *
+     ************************************************************/
     public enum CtrlSigType
     {
         CTRL_C_EVENT = 0,
@@ -10,33 +13,50 @@
         CTRL_SHUTDOWN_EVENT = 6
     }
 
-    /* Used for getting the type of signal when raising an event */
+    /*************************************************************
+     * CONTROL SIGNAL EVENT ARGUMENTS                            *
+     * Used for getting the type of signal when raising an event *
+     *************************************************************/
     public class CtrlSigEventArgs : System.EventArgs
     {
         public CtrlSigType type { get; private set; }
         public CtrlSigEventArgs(CtrlSigType type) : base() { this.type = type; }
     }
 
-    /* Used for (un)subscribing events to the signal handler */
+    /*********************************************************
+     * CONTROL SIGNAL EVENT                                  *
+     * Used for (un)subscribing events to the signal handler *
+     *********************************************************/
     public class CtrlSigEvent
     {
+        /*************************************************************
+         * Adds or removes a control signal handler from the console *
+         *************************************************************/
         [System.Runtime.InteropServices.DllImport("Kernel32")]
         private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
 
-        /* Used by the Console Ctrl Handler to raise events */
+        /****************************************************
+         * Used by the Console Ctrl Handler to raise events *
+         ****************************************************/
         private delegate bool EventHandler(CtrlSigType sig);
 
-        /* Initializer */
+        /***************
+         * Constructor *
+         ***************/
         public CtrlSigEvent() {}
 
-        /* Initializer with subscription */
+        /*********************************
+         * Constructor with subscription *
+         *********************************/
         public CtrlSigEvent(System.Action<object, CtrlSigEventArgs> eventToSubscribe) : this()
         {
             // Subscribe a CtrlSigEvent
             setHandle(eventToSubscribe, true);
         }
 
-        /* += operator (subscribe) */
+        /***************************
+         * += operator (subscribe) *
+         ***************************/
         public static CtrlSigEvent operator +(CtrlSigEvent left, System.Action<object, CtrlSigEventArgs> right)
         {
             // Subscribe a CtrlSigEvent
@@ -45,7 +65,9 @@
             return left;
         }
 
-        /* -= operator (unsubscribe) */
+        /*****************************
+         * -= operator (unsubscribe) *
+         *****************************/
         public static CtrlSigEvent operator -(CtrlSigEvent left, System.Action<object, CtrlSigEventArgs> right)
         {
             // Unsubscribe a CtrlSigEvent
@@ -54,7 +76,9 @@
             return left;
         }
 
-        /* (Un)Subscribes the event to the console ctrl handler */
+        /********************************************************
+         * (Un)Subscribes the event to the console ctrl handler *
+         ********************************************************/
         private void setHandle(System.Action<object, CtrlSigEventArgs> func, bool subscribe)
         {
             EventHandler handler = new EventHandler((CtrlSigType type) => { func.Invoke(this, new CtrlSigEventArgs(type)); return false; });

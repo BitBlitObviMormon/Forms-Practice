@@ -7,52 +7,27 @@ using System.Windows.Forms;
 
 namespace Forms_Control
 {
+    /*********************************************************************************************
+     * COMMAND MANAGER                                                                           *
+     * Processes all console commands, manages variables, and runs a job queue for a puppet form *
+     *********************************************************************************************/
     public class CommandManager
     {
-        private const int ERROR_INVALID_PARAMETER = 87;
+        /* A container for all of the variables */
         private Dictionary<string, Object> vars;
+
+        /* This form will be dragged around while manipulating other objects and forms */
         private PuppetForm puppet;
+
+        /* The job queue for the puppet form (You should only drag the puppet to one place at a time) */
         private JobQueue jobs;
+
+        /* Used as the return value whenever a command is processed (Because the command itself returns an error code) */
         public Object commandReturn { get; private set; }
 
-        /* Event that's called when the console is closing unexpectedly or by the user clicking the X */
-        private void OnConsoleClosing(object sender, CtrlSigEventArgs args)
-        {
-            switch (args.type)
-            {
-                // The console caught a CTRL-BREAK or CTRL-C signal
-                case CtrlSigType.CTRL_BREAK_EVENT:
-                case CtrlSigType.CTRL_C_EVENT:
-                    Console.WriteLine("Type exit to quit.");
-                    return;
-                // The console is closing unexpectedly or by user interaction
-                case CtrlSigType.CTRL_CLOSE_EVENT:
-                case CtrlSigType.CTRL_LOGOFF_EVENT:
-                case CtrlSigType.CTRL_SHUTDOWN_EVENT:
-                default:
-                    // If the puppet is alive, dispose of it properly
-                    if (puppet != null)
-                    {
-                        if (!puppet.IsDisposed)
-                            puppet.Invoke(new Action(puppet.Dispose));
-                    }
-
-                    return;
-            }
-        }
-
-        /* Hooks onto the console to capture control signals */
-        private void hookConsole(Action<object, CtrlSigEventArgs> func, bool captureBreaks = false)
-        {
-            // Disable default CTRL-C and CTRL-BREAK behaviour if we want to capture them
-            if (captureBreaks)
-                Console.CancelKeyPress += new ConsoleCancelEventHandler((object sender, ConsoleCancelEventArgs args) => { args.Cancel = true; });
-
-            // Attach the hook
-            new CtrlSigEvent(OnConsoleClosing);
-        }
-
-        /* Constructor */
+        /***************
+         * Constructor *
+         ***************/
         public CommandManager(PuppetForm puppet)
         {
             // Set up the Command Manager's vars and job queue
@@ -65,22 +40,34 @@ namespace Forms_Control
             hookConsole(OnConsoleClosing, true);
         }
 
-        /* Adds a variable to the list of variables */
+        /********************************************
+         * Adds a variable to the list of variables *
+         ********************************************/
         public void addVar(string name, Object var) { vars.Add(name, var); }
 
-        /* Returns the value of a variable */
+        /***********************************
+         * Returns the value of a variable *
+         ***********************************/
         public Object getVar(string name) { return vars[name]; }
 
-        /* Sets the value of a variable */
+        /********************************
+         * Sets the value of a variable *
+         ********************************/
         public void setVar(string name, Object var) { vars[name] = var; }
 
-        /* Prints the value of a variable */
+        /**********************************
+         * Prints the value of a variable *
+         **********************************/
         public void printVar(string name) { Console.WriteLine(name + " = " + vars[name].ToString()); }
 
-        /* Deletes the variable from the list of variables */
+        /***************************************************
+         * Deletes the variable from the list of variables *
+         ***************************************************/
         public void deleteVar(string name) { vars.Remove(name); }
 
-        /* Translates escape characters to their string literals */
+        /*********************************************************
+         * Translates escape characters to their string literals *
+         *********************************************************/
         public static string translateEscapeSequences(string text)
         {
             return text.Replace("\\n", "\n").Replace("\\t", "\t").Replace("\\a", "\a").Replace("\\b", "\b")
@@ -591,7 +578,9 @@ namespace Forms_Control
             return printErr(CommandError.InvalidCommand, printOutput);
         }
 
-        /* Prints the command if printOutput is set to true */
+        /****************************************************
+         * Prints the command if printOutput is set to true *
+         ****************************************************/
         private CommandError printErr(CommandError err, bool printOutput)
         {
             if (printOutput)
@@ -599,7 +588,9 @@ namespace Forms_Control
             return err;
         }
 
-        /* Sets the variable %name% to whatever command was given (could be int, string, evaluation, etc.) */
+        /***************************************************************************************************
+         * Sets the variable %name% to whatever command was given (could be int, string, evaluation, etc.) *
+         ***************************************************************************************************/
         private CommandError set(string name, string command)
         {
             if (vars.ContainsKey(name))
@@ -611,7 +602,9 @@ namespace Forms_Control
             return CommandError.Success;
         }
 
-        /* Reads the given pointer and outputs error data if printOutput is true */
+        /*************************************************************************
+         * Reads the given pointer and outputs error data if printOutput is true *
+         *************************************************************************/
         private static IntPtr readPtr(string[] commands, bool printOutput)
         {
             int ptr;
@@ -624,7 +617,9 @@ namespace Forms_Control
             return new IntPtr(ptr);
         }
 
-        /* Spits out the command return and returns CommandError.Success */
+        /*****************************************************************
+         * Spits out the command return and returns CommandError.Success *
+         *****************************************************************/
         private CommandError printReturnValue(bool printOutput)
         {
             // If we're allowed to print the variable, do so
@@ -632,6 +627,47 @@ namespace Forms_Control
                 Console.WriteLine(commandReturn.ToString());
 
             return CommandError.Success;
+        }
+
+        /**********************************************************************************************
+         * Event that's called when the console is closing unexpectedly or by the user clicking the X *
+         **********************************************************************************************/
+        private void OnConsoleClosing(object sender, CtrlSigEventArgs args)
+        {
+            switch (args.type)
+            {
+                // The console caught a CTRL-BREAK or CTRL-C signal
+                case CtrlSigType.CTRL_BREAK_EVENT:
+                case CtrlSigType.CTRL_C_EVENT:
+                    Console.WriteLine("Type exit to quit.");
+                    return;
+                // The console is closing unexpectedly or by user interaction
+                case CtrlSigType.CTRL_CLOSE_EVENT:
+                case CtrlSigType.CTRL_LOGOFF_EVENT:
+                case CtrlSigType.CTRL_SHUTDOWN_EVENT:
+                default:
+                    // If the puppet is alive, dispose of it properly
+                    if (puppet != null)
+                    {
+                        if (!puppet.IsDisposed)
+                            puppet.Invoke(new Action(puppet.Dispose));
+                    }
+
+                    return;
+            }
+        }
+
+        /*****************************************************
+         * Hooks onto the console to capture control signals *
+         *****************************************************/
+        private void hookConsole(Action<object, CtrlSigEventArgs> func, bool captureBreaks = false)
+        {
+            // Disable default CTRL-C and CTRL-BREAK behaviour if we want to capture them
+            if (captureBreaks)
+                Console.CancelKeyPress += new ConsoleCancelEventHandler((object sender, ConsoleCancelEventArgs args) => { args.Cancel = true; });
+
+            // Attach the hook
+            new CtrlSigEvent(OnConsoleClosing);
         }
     }
 }

@@ -39,9 +39,12 @@ namespace Forms_Control
 
         /* How close the target will move towards a point before stopping */
         /* Regardless of what this is set to, it will always move to exactly the point given */
+        /* Note: The puppet form may appear to "teleport" for large values */
         const float CloseDistance = 1.0f;
 
-        /* Initializes the window */
+        /*************************
+         * Constructs the window *
+         *************************/
         public PuppetForm()
         {
             name = "Your totally not shady friend";
@@ -50,7 +53,9 @@ namespace Forms_Control
             InitializeComponent();
         }
 
-        /* Paints the window and changes its region */
+        /********************************************
+         * Paints the window and changes its region *
+         ********************************************/
         private void PuppetForm_Paint(object sender, PaintEventArgs e)
         {
             // Runs when the form is first drawn
@@ -73,13 +78,17 @@ namespace Forms_Control
             e.Graphics.DrawImage(image, 0, 0);
         }
 
-        /* Closes the window when it's double clicked */
+        /**********************************************
+         * Closes the window when it's double clicked *
+         **********************************************/
         private void PuppetForm_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             Close();
         }
 
-        /* Make a speech bubble pop up in the taskbar */
+        /**********************************************
+         * Make a speech bubble pop up in the taskbar *
+         **********************************************/
         public void Notify(string title, string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None, Icon icon = null)
         {
             if (icon == null) icon = SystemIcons.Application;
@@ -88,13 +97,18 @@ namespace Forms_Control
             notifyBubble.ShowBalloonTip(time, title, text, tipIcon);
         }
         
-        /* Make a speech bubble pop up in the taskbar */
+        /**********************************************
+         * Make a speech bubble pop up in the taskbar *
+         **********************************************/
         public void Notify(string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None, Icon icon = null)
         {
             Notify(name, text, time, tipIcon, icon);
         }
 
-        /* Make the window show something in a speech bubble */
+        /*****************************************************
+         * Make the window show something in a speech bubble *
+         *****************************************************/
+        public void Say(string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None) { Say(name, text, time, tipIcon); }
         public void Say(string title, string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None)
         {
             chatBubble.ToolTipTitle = title;
@@ -107,63 +121,49 @@ namespace Forms_Control
             chatBubble.Show(text, this, (w + midw) / 2, -60, time);
         }
 
-        /* Make the window show something in a speech bubble */
-        public void Say(string text, int time = 30000, ToolTipIcon tipIcon = ToolTipIcon.None)
-        {
-            Say(name, text, time, tipIcon);
-        }
-
-        /* Returns the square of the distance between two points */
+        /*********************************************************
+         * Returns the square of the distance between two points *
+         *********************************************************/
         public static float distanceSquared(float x1, float y1, float x2, float y2)
         {
             return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
         }
 
-        /* Returns the square of the distance between two points */
+        /*********************************************************
+         * Returns the square of the distance between two points *
+         *********************************************************/
         public static float distanceSquared(PointF p1, PointF p2)
         {
             return distanceSquared(p1.X, p1.Y, p2.X, p2.Y);
         }
 
-        /* Returns the square of the distance between two points */
+        /*********************************************************
+         * Returns the square of the distance between two points *
+         *********************************************************/
         public static float distanceSquared(float x1, float y1, PointF p2)
         {
             return distanceSquared(x1, y1, p2.X, p2.Y);
         }
 
-        /* Returns the square of the distance between two points */
+        /*********************************************************
+         * Returns the square of the distance between two points *
+         *********************************************************/
         public static float distanceSquared(PointF p1, float x2, float y2)
         {
             return distanceSquared(p1.X, p1.Y, x2, y2);
         }
 
-        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    */
-        /* Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. */
-        /* If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only quick runtimes, please.       */
+        /*********************************************************************************************************************
+         * Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    *
+         * Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. *
+         * If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only very quick runtimes, please.  *
+         *********************************************************************************************************************/
         public void MoveTo(PointF pos, string side, Func<float, float, bool> callFunc = null, bool printOutput = true)
-        {
-            MoveTo(pos.X, pos.Y, 5.0f, side, callFunc, printOutput);
-        }
-
-        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    */
-        /* Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. */
-        /* If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only quick runtimes, please.       */
+            { MoveTo(pos.X, pos.Y, 5.0f, side, callFunc, printOutput); }
         public void MoveTo(PointF pos, float dr = 5.0f, string side = "closest", Func<float, float, bool> callFunc = null, bool printOutput = true)
-        {
-            MoveTo(pos.X, pos.Y, dr, side, callFunc, printOutput);
-        }
-
-        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    */
-        /* Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. */
-        /* If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only quick runtimes, please.       */
+            { MoveTo(pos.X, pos.Y, dr, side, callFunc, printOutput); }
         public void MoveTo(float x, float y, string size, Func<float, float, bool> callFunc = null, bool printOutput = true)
-        {
-            MoveTo(x, y, 5.0f, size, callFunc, printOutput);
-        }
-
-        /* Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    */
-        /* Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. */
-        /* If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only quick runtimes, please.       */
+            { MoveTo(x, y, 5.0f, size, callFunc, printOutput); }
         public void MoveTo(float x, float y, float dr = 5.0f, string side = "closest", Func<float, float, bool> callFunc = null, bool printOutput = true)
         {
             // If the user wants us to decide what to use then let's decide for them.
@@ -372,8 +372,10 @@ namespace Forms_Control
             }
         }
 
-        /* Determine the side, corner, or center that is closest to the given point */
-        /* Can take "any", "side", or "corner"                                      */
+        /****************************************************************************
+         * Determine the side, corner, or center that is closest to the given point *
+         * Can take "any", "side", or "corner"                                      *
+         ****************************************************************************/
         public string pickClosest(float x, float y, string type = "any")
         {
             // Variables for remembering which was the closest

@@ -1,7 +1,12 @@
 ﻿namespace Forms_Control
 {
+    /************************************************************************************
+     * COMMAND ERROR                                                                    *
+     * An advanced enum for all of the possible errors the Command Manager might return *
+     ************************************************************************************/
     public sealed class CommandError
     {
+        /* The values for all of the errors the Command Manager might return */
         public static readonly CommandError Success            = new CommandError( 1);
         public static readonly CommandError Null               = new CommandError( 0);
         public static readonly CommandError InvalidCommand     = new CommandError(-1);
@@ -13,12 +18,32 @@
         public static readonly CommandError PuppetNotCreated   = new CommandError(-7);
         public static readonly CommandError PuppetNotVisible   = new CommandError(-8);
 
+        /* Stores the error code */
         private readonly int err;
+
+        /*******************************
+         * Constructor from error code *
+         *******************************/
         private CommandError(int err) { this.err = err; }
+
+        /********************
+         * Copy Constructor *
+         ********************/
         private CommandError(CommandError err) { this.err = err.err; }
 
+        /***************************************************
+         * Implicitly convert an integer to a CommandError *
+         ***************************************************/
         public static implicit operator CommandError(int value) { return new CommandError(value); }
+
+        /***************************************************
+         * Implicitly convert a Command Error to an integer *
+         ***************************************************/
         public static implicit operator int(CommandError err) { return err.err; }
+
+        /***************************************************************************
+         * Return the descriptive text of an error when it's converted to a string *
+         ***************************************************************************/
         public override string ToString()
         {
             switch (err)

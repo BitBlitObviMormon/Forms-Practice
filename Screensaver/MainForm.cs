@@ -9,6 +9,7 @@ namespace Screensaver
 {
     public partial class MainForm : Form
     {
+        /* Used for hooking onto global input events */
         private IKeyboardMouseEvents globalHook;
 
         /*************************
@@ -16,10 +17,10 @@ namespace Screensaver
          *************************/
         public MainForm()
         {
-            //Show the window and start the screen saver
+            // Show the window and start the screen saver
             Start();
 
-            //Initialize the global mouse and keyboard hooks
+            // Initialize the global mouse and keyboard hooks
             globalHook = Hook.GlobalEvents();
             globalHook.KeyDown += Close;
             globalHook.MouseDown += Close;
@@ -32,7 +33,7 @@ namespace Screensaver
          **************************/
         private void Start()
         {
-            //Export the screen saver to a file so that it can be run more easily
+            // Export the screen saver to a file so that it can be run more easily
             string exe = Path.Combine(Directory.GetCurrentDirectory(), "Temp" + Process.GetCurrentProcess().Handle.ToString() + ".exe");
             using (FileStream fout = new FileStream(exe, FileMode.CreateNew, FileAccess.Write))
             {
@@ -40,12 +41,12 @@ namespace Screensaver
                 fout.Write(bytes, 0, bytes.Length);
             }
 
-            //Startup the screen saver
+            // Startup the screen saver
             InitializeComponent();
             Cursor.Hide();
             Process.Start(exe, "/p " + this.Handle.ToString());
 
-            //On a different thread, check if the screen saver stops running
+            // On a different thread, check if the screen saver stops running
             Thread thread = new Thread(() => DeleteTempExe(exe));
             thread.Start();
         }
@@ -63,7 +64,7 @@ namespace Screensaver
                     File.Delete(filename);
                     fail = false;
                 }
-                catch (Exception) { }
+                catch (Exception) {}
             } while (fail);
         }
 
@@ -71,9 +72,6 @@ namespace Screensaver
          * Closes the screen saver if any input is detected    *
          * (First event is ignored in order to flush the keys) *
          *******************************************************/
-        private void Close(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+        private void Close(object sender, EventArgs e) { this.Close(); }
     }
 }
