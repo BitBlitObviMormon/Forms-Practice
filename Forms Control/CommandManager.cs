@@ -84,15 +84,19 @@ namespace Forms_Control
          *****************************************************************************************************
          * Object GET %var%                                                                                  *
          * Object PRINT %var%                                                                                *
-         * Prints the value of %var% or returns an error if it does not exist.                               *
+         * Returns the value of %var% or an error if it does not exist.                                      *
          *****************************************************************************************************
          * void DELETE %var%                                                                                 *
          * Deletes the variable %var%.                                                                       *
          *****************************************************************************************************
+         * void CLEAR                                                                                        *
+         * Deletes all of the variables                                                                      *
+         *****************************************************************************************************
          * void EXIT                                                                                         *
          * Closes the application.                                                                           *
          *****************************************************************************************************
-         * void CLEAR                                                                                        *
+         * void CLEARSCREEN                                                                                  *
+         * void CLS                                                                                          *
          * Clears the console screen (ignores printOutput)                                                   *
          *****************************************************************************************************
          * void MOVETO %x% %y% [%speed%] [%side%]                                                            *
@@ -138,10 +142,10 @@ namespace Forms_Control
          * void NOTIFY [%title%] %text% [%time%]                                                             *
          * Makes the puppet form display a notification with the given text and title for the given duration *
          *****************************************************************************************************
-         * SHOW [%hwnd%]                                                                                     *
+         * void SHOW [%hwnd%]                                                                                *
          * Shows the given window (puppet form is the default)                                               *
          *****************************************************************************************************
-         * HIDE [%hwnd%]                                                                                     *
+         * void HIDE [%hwnd%]                                                                                *
          * Hides the given window (puppet form is the default)                                               *
          *****************************************************************************************************/
         public int runCommand(string command, bool printOutput = true)
@@ -227,6 +231,18 @@ namespace Forms_Control
                             return printErr(CommandError.VarDoesNotExist, printOutput);
                         }
                     }
+                // CLEAR
+                case "clear":
+                    {
+                        // Clear all of the variables
+                        vars.Clear();
+
+                        // Spit output if allowed
+                        if (printOutput)
+                            Console.WriteLine("All variables cleared.");
+
+                        return CommandError.Success;
+                    }
                 // EXIT
                 case "exit":
                     {
@@ -238,8 +254,10 @@ namespace Forms_Control
 
                         return CommandError.Success;
                     }
-                // CLEAR
-                case "clear":
+                // CLEARSCREEN
+                // CLS
+                case "clearscreen":
+                case "cls":
                     {
                         Console.Clear(); // Clear the console screen
                         return CommandError.Success;
@@ -660,10 +678,10 @@ namespace Forms_Control
         /*****************************************************
          * Hooks onto the console to capture control signals *
          *****************************************************/
-        private void hookConsole(Action<object, CtrlSigEventArgs> func, bool captureBreaks = false)
+        private void hookConsole(Action<object, CtrlSigEventArgs> func, bool cancelBreaks = false)
         {
-            // Disable default CTRL-C and CTRL-BREAK behaviour if we want to capture them
-            if (captureBreaks)
+            // Disable default CTRL-C and CTRL-BREAK behaviour if we want to cancel them
+            if (cancelBreaks)
                 Console.CancelKeyPress += new ConsoleCancelEventHandler((object sender, ConsoleCancelEventArgs args) => { args.Cancel = true; });
 
             // Attach the hook

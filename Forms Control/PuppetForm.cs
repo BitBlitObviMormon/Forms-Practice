@@ -7,6 +7,10 @@ using System.Windows.Forms;
 
 namespace Forms_Control
 {
+    /***************************************************************************************************************
+     * PUPPET FORM                                                                                                 *
+     * Used as a puppet by the command manager and as a visual representation of what the command manager is doing *
+     ***************************************************************************************************************/
     public partial class PuppetForm : Form
     {
         /* All of the points for easy reference */
@@ -81,10 +85,7 @@ namespace Forms_Control
         /**********************************************
          * Closes the window when it's double clicked *
          **********************************************/
-        private void PuppetForm_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            Close();
-        }
+        private void PuppetForm_MouseDoubleClick(object sender, MouseEventArgs e) { Close(); }
 
         /**********************************************
          * Make a speech bubble pop up in the taskbar *
@@ -153,11 +154,11 @@ namespace Forms_Control
             return distanceSquared(p1.X, p1.Y, x2, y2);
         }
 
-        /*********************************************************************************************************************
-         * Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)    *
-         * Calls the method callFunc when it is not null. callFunc has to execute for LESS THAN 10 milliseconds to not skip. *
-         * If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only very quick runtimes, please.  *
-         *********************************************************************************************************************/
+        /********************************************************************************************************************************
+         * Translates the form over to the specified coordinates. (Meant to be called on a different thread than the gui)               *
+         * Calls the method callFunc when it is not null. callFunc has to finishing executing in LESS THAN 10 milliseconds to not skip. *
+         * If callFunc is executing for longer than 100 milliseconds, it WILL be aborted. Only very quick runtimes, please.             *
+         ********************************************************************************************************************************/
         public void MoveTo(PointF pos, string side, Func<float, float, bool> callFunc = null, bool printOutput = true)
             { MoveTo(pos.X, pos.Y, 5.0f, side, callFunc, printOutput); }
         public void MoveTo(PointF pos, float dr = 5.0f, string side = "closest", Func<float, float, bool> callFunc = null, bool printOutput = true)
