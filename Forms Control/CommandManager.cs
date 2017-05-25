@@ -101,11 +101,15 @@ namespace Forms_Control
          *****************************************************************************************************
          * void MOVETO %x% %y% [%speed%] [%side%]                                                            *
          * Translates the given side of the puppet form to the given position with the given speed.          *
-         * %speed% defaults to 5.0, %side% defaults to "center"                                              *
+         * %speed% defaults to 5.0, %side% defaults to "any"                                                 *
          *****************************************************************************************************
-         * string GETWINDOW                                                                                  *
-         * string GETACTIVEWINDOW                                                                            *
-         * Prints the currently active window                                                                *
+         * HWND GETPUPPET                                                                                    *
+         * HWND GETPUPPETFORM                                                                                *
+         * Prints the to the Puppet Form                                                                     *
+         *****************************************************************************************************
+         * HWND GETWINDOW                                                                                    *
+         * HWND GETACTIVEWINDOW                                                                              *
+         * Gets the handle to the currently active window                                                    *
          *****************************************************************************************************
          * IEnumerable<IntPtr> GETWINDOWS                                                                    *
          * IEnumerable<IntPtr> LISTWINDOWS                                                                   *
@@ -265,6 +269,7 @@ namespace Forms_Control
                 // MOVETO %x% %y% [%speed%] [%side%]
                 case "moveto":
                     {
+                        // Make sure the puppet is not null
                         if (puppet == null)
                         {
                             if (printOutput)
@@ -316,6 +321,28 @@ namespace Forms_Control
 //                            }
                             return true;
                         })));
+
+                        return CommandError.Success;
+                    }
+                // GETPUPPET
+                case "getpuppet":
+                // GETPUPPETWINDOW
+                case "getpuppetform":
+                    {
+                        // Make sure the puppet is not null
+                        if (puppet == null)
+                        {
+                            if (printOutput)
+                                Console.WriteLine("Error: " + CommandError.PuppetNotCreated.ToString() + ".");
+                            return CommandError.PuppetNotCreated;
+                        }
+
+                        // Get the title of the window
+                        puppet.Invoke(new Action(() => {
+                            commandReturn = puppet.Handle;
+                            if (printOutput)
+                                Console.WriteLine(puppet.Text + ": " + puppet.Handle.ToString());
+                        }));
 
                         return CommandError.Success;
                     }
